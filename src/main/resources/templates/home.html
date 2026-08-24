@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Spring Boot ile hazırlanmış örnek ana sayfa">
+    <title>Spring Demo</title>
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+    <header class="container">
+        <nav class="navbar" aria-label="Ana menü">
+            <a class="brand" href="#">
+                <span class="brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 4C11 4 5 8.5 5 14c0 3.3 2.7 6 6 6 5.5 0 9-6 8-16Z"/>
+                        <path d="M5 20c2.5-5 6-8 11-10"/>
+                    </svg>
+                </span>
+                Spring Demo
+            </a>
+            <div class="nav-links">
+                <a href="/generate">Generate</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero container">
+            <div class="hero-copy">
+                <div class="eyebrow">
+                    <span class="status-dot"></span>
+                    Uygulama başarıyla çalışıyor
+                </div>
+                <h1>Java ile hızlı, <span>temiz</span> ve güçlü.</h1>
+                <p>
+                    Bu demo sayfası Spring Boot uygulamanızın hazır olduğunu gösterir.
+                    Buradan REST servisleri, veritabanı bağlantıları ve gerçek ürün
+                    özellikleri ekleyerek projenizi büyütebilirsiniz.
+                </p>
+                <div class="actions">
+                    <a class="button button-primary" href="#ozellikler">Projeyi keşfet →</a>
+                    <a class="button button-secondary" href="https://start.spring.io" target="_blank" rel="noreferrer">Spring Initializr</a>
+                </div>
+            </div>
+
+            <div class="code-card" aria-label="Spring Boot kod örneği">
+                <div class="code-header">
+                    <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+                    DemoController.java
+                </div>
+                <pre><code><span class="token-keyword">package</span> com.example.demo;
+
+<span class="token-keyword">import</span> org.springframework.web.bind.annotation.*;
+
+<span class="token-keyword">@RestController</span>
+<span class="token-keyword">public class</span> <span class="token-type">DemoController</span> {
+
+    <span class="token-keyword">@GetMapping</span>(<span class="token-string">"/api/hello"</span>)
+    <span class="token-keyword">public</span> <span class="token-type">String</span> hello() {
+        <span class="token-keyword">return</span> <span class="token-string">"Merhaba Spring!"</span>;
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <section class="features container" id="ozellikler">
+            <div class="section-heading">
+                <h2>Başlangıç için her şey hazır.</h2>
+                <p>Modern bir Spring Boot uygulamasının temel geliştirme akışı.</p>
+            </div>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <span class="feature-number">01 / MAVEN</span>
+                    <h3>Bağımlılık yönetimi</h3>
+                    <p>Proje paketlerini <code>pom.xml</code> üzerinden ekleyin, güncelleyin ve tek komutla derleyin.</p>
+                </article>
+                <article class="feature-card">
+                    <span class="feature-number">02 / SPRING</span>
+                    <h3>Hızlı geliştirme</h3>
+                    <p>Hazır starter paketleri ve otomatik yapılandırma sayesinde iş mantığınıza odaklanın.</p>
+                </article>
+                <article class="feature-card">
+                    <span class="feature-number">03 / DEPLOY</span>
+                    <h3>Kolay yayınlama</h3>
+                    <p>Uygulamanızı çalıştırılabilir JAR olarak paketleyin ve dilediğiniz ortama taşıyın.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container">
+        <span>Spring Boot + Maven demo projesi</span>
+        <span>Java 21 ile geliştirildi</span>
+    </footer>
+</body>
+</html>
