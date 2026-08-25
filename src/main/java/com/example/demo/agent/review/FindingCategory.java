@@ -1,0 +1,17 @@
+package com.example.demo.agent.review;
+
+// Finding Category enum for reviewing
+
+public enum FindingCategory {
+
+    UNSUPPORTED_CLAIM,
+    MISLEADING_LANGUAGE,
+    FALSE_URGENCY_OR_SCARCITY,
+    HARMFUL_PERSUASION,
+    DISCRIMINATION_OR_TARGETING,
+    PRIVACY_OR_PERSONAL_DATA,
+    PLATFORM_POLICY_RISK,
+    BRAND_OR_STRATEGY_MISALIGNMENT,
+    UNCLEAR_DISCLOSURE,
+    OTHER
+}

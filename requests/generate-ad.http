@@ -1,0 +1,14 @@
+### Generate three reviewed Instagram ad candidates
+POST http://localhost:8080/api/advertisements/generate
+Content-Type: application/json
+
+{
+  "brief": "Create three Instagram advertisement variations for Focusly, a fictional productivity application. Known product capabilities: users can manually create tasks, tasks can be grouped into projects, users can create a daily priority list, and the application offers a 14-day free trial without requiring a credit card. The target audience is freelance designers who feel overwhelmed by scattered tasks and multiple client projects. The objective is to encourage users to start the free trial. Do not use percentages, guarantees, false urgency, fear, or unsupported productivity claims.",
+  "platform": "Instagram",
+  "brandName": "Focusly",
+  "brandVoice": "Calm, clear and encouraging",
+  "knownTargetAudience": "Freelance designers managing multiple client projects",
+  "language": "English",
+  "reviewLanguage": "English",
+  "requestedAngleCount": 3
+}

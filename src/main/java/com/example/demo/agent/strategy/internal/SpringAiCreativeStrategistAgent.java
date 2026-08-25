@@ -15,24 +15,20 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Component
 public final class SpringAiCreativeStrategistAgent
         implements CreativeStrategistAgent {
 
-private static final AgentDescriptor DESCRIPTOR =
-        new AgentDescriptor(
+    private static final AgentDescriptor DESCRIPTOR =
+        AgentDescriptor.of(
                 "brief-strategy",
-                "Analyzes user briefs, creates distinct creative angles "
-                        + "and produces ethical persuasion directions.",
-                Set.of(
-                        "brief-analysis",
-                        "creative-angle-generation",
-                        "audience-analysis",
-                        "persuasion-planning",
-                        "strategy-generation"
-                )
+                "1.0.0",
+                "brief-analysis",
+                "creative-angle-generation",
+                "audience-analysis",
+                "persuasion-planning",
+                "strategy-generation"
         );
 
     private final ChatClient chatClient;

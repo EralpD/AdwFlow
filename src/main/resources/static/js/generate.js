@@ -8,6 +8,14 @@
     const uploadImagesButton = document.getElementById("upload-images-button");
     const imageInput = document.getElementById("image-input");
     const attachments = document.getElementById("attachments");
+    const generateButton = document.getElementById("generate-button");
+    const generateButtonText = document.getElementById("generate-button-text");
+    const aiStatusText = document.getElementById("ai-status-text");
+    const formMessage = document.getElementById("form-message");
+    const generationResult = document.getElementById("generation-result");
+    const resultStatus = document.getElementById("result-status");
+    const resultSummary = document.getElementById("result-summary");
+    const candidateList = document.getElementById("candidate-list");
     let selectedImages = [];
 
     const closeAttachmentMenu = () => {
@@ -70,6 +78,99 @@
         selectedImages = [];
         imageInput.value = "";
         renderAttachments();
+    };
+
+    const setFormMessage = (message, type = "info") => {
+        formMessage.textContent = message;
+        formMessage.className = `form-message is-${type}`;
+        formMessage.hidden = !message;
+    };
+
+    const setSubmitting = (submitting) => {
+        generateButton.disabled = submitting;
+        generateButton.setAttribute("aria-busy", String(submitting));
+        generateButtonText.textContent = submitting ? "Generating…" : "Generate Ad";
+        aiStatusText.textContent = submitting ? "Agents are working" : "AI is ready";
+    };
+
+    const appendTextElement = (parent, tagName, className, text) => {
+        const element = document.createElement(tagName);
+        element.className = className;
+        element.textContent = text;
+        parent.append(element);
+        return element;
+    };
+
+    const renderCandidate = (candidate, reviewByCandidate) => {
+        const card = document.createElement("article");
+        card.className = "candidate-card";
+
+        const cardTop = document.createElement("div");
+        cardTop.className = "candidate-card-top";
+        appendTextElement(cardTop, "span", "candidate-id", candidate.candidateId);
+        appendTextElement(cardTop, "span", "angle-id", candidate.sourceAngleId);
+
+        appendTextElement(card, "h3", "candidate-headline", candidate.headline);
+        appendTextElement(card, "p", "candidate-copy", candidate.primaryText);
+        appendTextElement(card, "p", "candidate-cta", candidate.callToAction);
+
+        if (Array.isArray(candidate.hashtags) && candidate.hashtags.length > 0) {
+            appendTextElement(
+                card,
+                "p",
+                "candidate-hashtags",
+                candidate.hashtags.join(" ")
+            );
+        }
+
+        const review = reviewByCandidate.get(candidate.candidateId);
+        const findingCount = Array.isArray(review?.findings) ? review.findings.length : 0;
+        appendTextElement(
+            card,
+            "p",
+            findingCount === 0 ? "candidate-review is-clear" : "candidate-review is-flagged",
+            findingCount === 0
+                ? "Compliance review: clear"
+                : `Compliance review: ${findingCount} finding(s)`
+        );
+
+        card.prepend(cardTop);
+        candidateList.append(card);
+    };
+
+    const renderGenerationResult = (result) => {
+        candidateList.replaceChildren();
+
+        resultStatus.textContent = result.status;
+        resultStatus.className = result.status === "PASS"
+            ? "result-status is-pass"
+            : "result-status is-warning";
+
+        const candidateReviews = result.review?.candidateReviews ?? [];
+        const reviewByCandidate = new Map(
+            candidateReviews.map((review) => [review.candidateId, review])
+        );
+
+        const candidates = Array.isArray(result.candidates) ? result.candidates : [];
+        candidates.forEach((candidate) => renderCandidate(candidate, reviewByCandidate));
+
+        resultSummary.textContent = [
+            `${candidates.length} candidate(s) generated.`,
+            `${result.revisionRounds ?? 0} revision round(s).`,
+            `Workflow ${result.workflowId}.`
+        ].join(" ");
+
+        generationResult.hidden = false;
+        generationResult.scrollIntoView({ behavior: "smooth", block: "start" });
+    };
+
+    const readErrorMessage = async (response) => {
+        try {
+            const error = await response.json();
+            return error.message || `Request failed with status ${response.status}.`;
+        } catch {
+            return `Request failed with status ${response.status}.`;
+        }
     };
 
     const countAndLimitWords = () => {
@@ -165,11 +266,69 @@
 
     window.addEventListener("resize", resizeTextarea);
 
-    form.addEventListener("submit", (event) => {
+    form.addEventListener("submit", async (event) => {
         event.preventDefault();
-        clearAttachments();
         closeAttachmentMenu();
-        textarea.focus();
+
+        const brief = textarea.value.trim();
+
+        if (!brief) {
+            setFormMessage("Describe the advertisement you want to create.", "error");
+            textarea.focus();
+            return;
+        }
+
+        const hadImages = selectedImages.length > 0;
+        setFormMessage(
+            hadImages
+                ? "This first test sends the text brief only; selected images are not sent to the model yet."
+                : "",
+            "info"
+        );
+
+        generationResult.hidden = true;
+        setSubmitting(true);
+
+        try {
+            const response = await fetch("/api/advertisements/generate", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    brief,
+                    platform: "Instagram",
+                    brandName: "unspecified",
+                    brandVoice: "Calm, clear and encouraging",
+                    knownTargetAudience: "unspecified",
+                    language: "English",
+                    reviewLanguage: "English",
+                    requestedAngleCount: 3
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(await readErrorMessage(response));
+            }
+
+            const result = await response.json();
+            renderGenerationResult(result);
+            setFormMessage(
+                result.status === "PASS"
+                    ? "Generation completed successfully."
+                    : "The revision limit was reached; inspect the remaining findings.",
+                result.status === "PASS" ? "success" : "error"
+            );
+        } catch (error) {
+            generationResult.hidden = true;
+            setFormMessage(
+                error instanceof Error ? error.message : "Generation failed.",
+                "error"
+            );
+        } finally {
+            clearAttachments();
+            setSubmitting(false);
+        }
     });
 
     countAndLimitWords();

@@ -8,7 +8,23 @@ import org.springframework.context.annotation.Configuration;
 public class AgentClientConfiguration {
 
     @Bean("strategyChatClient")
-    ChatClient strategyChatClient(ChatClient.Builder builder) {
+    ChatClient strategyChatClient(
+            ChatClient.Builder builder
+    ) {
         return builder.build();
     }
+
+    @Bean("copywriterChatClient")
+    ChatClient copywriterChatClient(
+            ChatClient.Builder builder
+    ) {
+        return builder.build();
+    }
+
+    @Bean("complianceChatClient")
+    ChatClient complianceChatClient(
+            ChatClient.Builder builder
+    ) {
+        return builder.build();
+}
 }

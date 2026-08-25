@@ -18,7 +18,10 @@
                 </span>
                 Ad Studio
             </a>
-            <span class="status"><span class="status-dot"></span> AI is ready</span>
+            <span class="status" id="ai-status">
+                <span class="status-dot"></span>
+                <span id="ai-status-text">AI is ready</span>
+            </span>
         </header>
 
         <main>
@@ -88,8 +91,8 @@
                             >
                         </div>
 
-                        <button class="submit-button" type="submit">
-                            Generate Ad
+                        <button class="submit-button" id="generate-button" type="submit">
+                            <span id="generate-button-text">Generate Ad</span>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                 <path d="M5 12h14M13 6l6 6-6 6"/>
                             </svg>
@@ -98,6 +101,21 @@
                 </form>
 
                 <p class="privacy-note">Your input is used only to generate your advertisement.</p>
+
+                <p class="form-message" id="form-message" role="status" aria-live="polite" hidden></p>
+
+                <section class="generation-result" id="generation-result" aria-live="polite" hidden>
+                    <div class="result-header">
+                        <div>
+                            <p class="result-eyebrow">Generation result</p>
+                            <h2>Your ad candidates</h2>
+                        </div>
+                        <span class="result-status" id="result-status"></span>
+                    </div>
+
+                    <p class="result-summary" id="result-summary"></p>
+                    <div class="candidate-list" id="candidate-list"></div>
+                </section>
             </section>
         </main>
     </div>

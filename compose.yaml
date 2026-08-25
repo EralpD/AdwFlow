@@ -1,1 +1,13 @@
-services: {}
+services:
+  observability:
+    image: grafana/otel-lgtm:latest
+    container_name: ad-studio-observability
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - observability-data:/data
+
+volumes:
+  observability-data:

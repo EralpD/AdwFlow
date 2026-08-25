@@ -6,6 +6,10 @@ import java.time.Clock;
 
 import com.example.demo.agent.core.AgentExecutionObserver;
 import com.example.demo.agent.core.AgentExecutor;
+import com.example.demo.telemetry.MicrometerAgentExecutionObserver;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.tracing.Tracer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -18,8 +22,20 @@ public class AgentCoreConfiguration {
     }
 
     @Bean
-    AgentExecutionObserver agentExecutionObserver() {
-        return AgentExecutionObserver.noop();
+    AgentExecutionObserver agentExecutionObserver(
+            ObjectProvider<Tracer> tracerProvider,
+            MeterRegistry meterRegistry
+    ) {
+        Tracer tracer = tracerProvider.getIfAvailable();
+
+        if (tracer == null) {
+            return AgentExecutionObserver.noop();
+        }
+
+        return new MicrometerAgentExecutionObserver(
+                tracer,
+                meterRegistry
+        );
     }
 
     @Bean
