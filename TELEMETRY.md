@@ -3,6 +3,10 @@
 The application uses Spring Boot Actuator, Micrometer Tracing and the
 OpenTelemetry bridge to export traces through OTLP.
 
+Traces can be sent either to the local Grafana OTEL-LGTM stack or
+directly to Langfuse. The Langfuse integration uses its supported OTLP
+HTTP ingestion endpoint; no second tracing SDK is required.
+
 ## Signals
 
 ### Traces
@@ -36,9 +40,19 @@ Agent spans contain:
 - `agent.duration.ms`
 - `workflow.id`
 - `generation.id`
+- `langfuse.trace.name`
+- `langfuse.session.id`
+- `langfuse.trace.metadata.workflow_id`
+- `langfuse.trace.metadata.generation_id`
+- `langfuse.observation.type`
+- filterable agent name, version, and stage observation metadata
 
 The application does not add user briefs, prompts, generated advertising
 copy, image contents, or API keys to custom spans or metric tags.
+
+The same workflow ID is used as the Langfuse session ID. Consequently,
+the initial copy workflow trace and the separate per-candidate visual
+generation traces can be found together in one Langfuse session.
 
 ### Metrics
 
@@ -94,6 +108,58 @@ OTLP ports:
 ```text
 4318: OTLP HTTP
 4317: OTLP gRPC
+```
+
+## Send traces to Langfuse
+
+Create a Langfuse project and copy its public and secret API keys. The
+application does not read or store those two values directly. Instead,
+Langfuse Basic Auth expects their Base64-encoded `public:secret` pair.
+
+Prepare the value in PowerShell:
+
+```powershell
+$env:LANGFUSE_PUBLIC_KEY = "pk-lf-..."
+$env:LANGFUSE_SECRET_KEY = "sk-lf-..."
+$langfuseKeyPair = "${env:LANGFUSE_PUBLIC_KEY}:${env:LANGFUSE_SECRET_KEY}"
+$env:LANGFUSE_AUTH_STRING = [Convert]::ToBase64String(
+    [Text.Encoding]::UTF8.GetBytes($langfuseKeyPair)
+)
+```
+
+Activate the Langfuse profile and start the application:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE = "langfuse"
+$env:OPENAI_API_KEY = "your-openai-api-key"
+.\mvnw.cmd spring-boot:run
+```
+
+The profile defaults to Langfuse Cloud's EU data region:
+
+```text
+https://cloud.langfuse.com/api/public/otel/v1/traces
+```
+
+Override the endpoint for another region or a self-hosted instance:
+
+```powershell
+$env:LANGFUSE_OTEL_TRACES_ENDPOINT = "https://us.cloud.langfuse.com/api/public/otel/v1/traces"
+```
+
+The profile sends the `x-langfuse-ingestion-version: 4` header so that
+directly ingested traces use Langfuse's real-time v4 ingestion path.
+Metrics export is disabled by default in this profile because Langfuse
+is configured here as a trace backend, not as the metrics backend.
+
+After generating an advertisement, open the Langfuse project and filter
+by:
+
+```text
+Trace name: advertisement-generation
+Trace name: advertisement-visual-generation
+Session ID: <workflowId returned by the API>
+Metadata generation_id: <generationId returned by the API>
 ```
 
 ## Start the application

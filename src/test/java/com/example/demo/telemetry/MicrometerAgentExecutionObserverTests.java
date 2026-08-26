@@ -88,6 +88,26 @@ class MicrometerAgentExecutionObserverTests {
         );
 
         verify(scope).close();
+        verify(span).tag(
+                "langfuse.trace.name",
+                "advertisement-generation"
+        );
+        verify(span).tag(
+                "langfuse.session.id",
+                "workflow-1"
+        );
+        verify(span).tag(
+                "langfuse.trace.metadata.generation_id",
+                "generation-1"
+        );
+        verify(span).tag(
+                "langfuse.observation.type",
+                "span"
+        );
+        verify(span).tag(
+                "langfuse.observation.level",
+                "DEFAULT"
+        );
         verify(span).end();
     }
 }

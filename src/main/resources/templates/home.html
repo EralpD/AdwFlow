@@ -1,97 +1,277 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Spring Boot ile hazırlanmış örnek ana sayfa">
-    <title>Spring Demo</title>
+    <meta name="description" content="AdwFlow turns a single brief into strategic, polished and compliance-aware advertising candidates.">
+    <meta name="theme-color" content="#f6f9ff">
+    <title>AdwFlow — AI-Powered Advertising Workflow</title>
     <link rel="stylesheet" href="/css/home.css">
+    <script src="/js/home.js" defer></script>
 </head>
 <body>
-    <header class="container">
-        <nav class="navbar" aria-label="Ana menü">
-            <a class="brand" href="#">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <nav class="navbar container" aria-label="Primary navigation">
+            <a class="brand" href="/" aria-label="AdwFlow home">
                 <span class="brand-mark" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 4C11 4 5 8.5 5 14c0 3.3 2.7 6 6 6 5.5 0 9-6 8-16Z"/>
-                        <path d="M5 20c2.5-5 6-8 11-10"/>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="m12 2 1.5 5.2a4.6 4.6 0 0 0 3.2 3.2L22 12l-5.3 1.6a4.6 4.6 0 0 0-3.2 3.2L12 22l-1.5-5.2a4.6 4.6 0 0 0-3.2-3.2L2 12l5.3-1.6a4.6 4.6 0 0 0 3.2-3.2L12 2Z"/>
                     </svg>
                 </span>
-                Spring Demo
+                <span>AdwFlow</span>
             </a>
-            <div class="nav-links">
-                <a href="/generate">Generate</a>
+
+            <div class="nav-actions">
+                <a class="nav-link" href="#workflow">How it works</a>
+                <a class="nav-cta" href="/generate">
+                    Generate
+                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path d="M4 10h12M11 5l5 5-5 5"/>
+                    </svg>
+                </a>
             </div>
         </nav>
     </header>
 
-    <main>
-        <section class="hero container">
-            <div class="hero-copy">
-                <div class="eyebrow">
-                    <span class="status-dot"></span>
-                    Uygulama başarıyla çalışıyor
-                </div>
-                <h1>Java ile hızlı, <span>temiz</span> ve güçlü.</h1>
-                <p>
-                    Bu demo sayfası Spring Boot uygulamanızın hazır olduğunu gösterir.
-                    Buradan REST servisleri, veritabanı bağlantıları ve gerçek ürün
-                    özellikleri ekleyerek projenizi büyütebilirsiniz.
+    <main id="main-content">
+        <section class="hero container" aria-labelledby="hero-title">
+            <div class="hero-copy reveal">
+                <p class="eyebrow">
+                    <span class="eyebrow-icon" aria-hidden="true">✦</span>
+                    AI-powered advertising workflow
                 </p>
-                <div class="actions">
-                    <a class="button button-primary" href="#ozellikler">Projeyi keşfet →</a>
-                    <a class="button button-secondary" href="https://start.spring.io" target="_blank" rel="noreferrer">Spring Initializr</a>
+
+                <h1 id="hero-title">
+                    From one brief to ads
+                    <span>built to perform.</span>
+                </h1>
+
+                <p class="hero-description">
+                    AdwFlow combines strategy, persuasive copywriting and thoughtful review
+                    in one focused workflow—so every concept starts stronger and finishes ready.
+                </p>
+
+                <div class="hero-actions">
+                    <a class="button button-primary" href="/generate">
+                        Generate Your Ad
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M4 10h12M11 5l5 5-5 5"/>
+                        </svg>
+                    </a>
+                    <a class="button button-secondary" href="#workflow">See how it works</a>
                 </div>
+
+                <ul class="hero-notes" aria-label="Platform highlights">
+                    <li><span aria-hidden="true">✓</span> Strategy-led</li>
+                    <li><span aria-hidden="true">✓</span> Multiple candidates</li>
+                    <li><span aria-hidden="true">✓</span> Review-aware</li>
+                </ul>
             </div>
 
-            <div class="code-card" aria-label="Spring Boot kod örneği">
-                <div class="code-header">
-                    <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
-                    DemoController.java
+            <div class="workflow-preview reveal" aria-label="AdwFlow creative workflow preview">
+                <div class="preview-glow" aria-hidden="true"></div>
+                <div class="preview-window">
+                    <div class="preview-header">
+                        <div>
+                            <p class="preview-label">Creative workspace</p>
+                            <p class="preview-title">New campaign</p>
+                        </div>
+                        <span class="live-status"><span></span> In progress</span>
+                    </div>
+
+                    <div class="brief-card">
+                        <div class="brief-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M5 4h14v16H5zM8 8h8M8 12h6M8 16h4"/>
+                            </svg>
+                        </div>
+                        <div class="brief-content">
+                            <span>Campaign brief</span>
+                            <strong>Launch a mindful productivity app</strong>
+                        </div>
+                    </div>
+
+                    <div class="preview-flow" aria-label="Workflow stages">
+                        <div class="flow-row is-complete">
+                            <span class="flow-icon" aria-hidden="true">01</span>
+                            <div>
+                                <strong>Strategy</strong>
+                                <span>Three distinct creative angles</span>
+                            </div>
+                            <span class="flow-check" aria-label="Complete">✓</span>
+                        </div>
+                        <div class="flow-line" aria-hidden="true"></div>
+                        <div class="flow-row is-active">
+                            <span class="flow-icon" aria-hidden="true">02</span>
+                            <div>
+                                <strong>Copywriting</strong>
+                                <span>Building candidate variations</span>
+                            </div>
+                            <span class="flow-loader" aria-label="In progress"></span>
+                        </div>
+                        <div class="flow-line" aria-hidden="true"></div>
+                        <div class="flow-row">
+                            <span class="flow-icon" aria-hidden="true">03</span>
+                            <div>
+                                <strong>Review</strong>
+                                <span>Clarity and compliance checks</span>
+                            </div>
+                            <span class="flow-pending" aria-label="Pending"></span>
+                        </div>
+                    </div>
+
+                    <div class="preview-output">
+                        <div>
+                            <span>Expected output</span>
+                            <strong>3 campaign-ready candidates</strong>
+                        </div>
+                        <span class="output-badge">A / B / C</span>
+                    </div>
                 </div>
-                <pre><code><span class="token-keyword">package</span> com.example.demo;
-
-<span class="token-keyword">import</span> org.springframework.web.bind.annotation.*;
-
-<span class="token-keyword">@RestController</span>
-<span class="token-keyword">public class</span> <span class="token-type">DemoController</span> {
-
-    <span class="token-keyword">@GetMapping</span>(<span class="token-string">"/api/hello"</span>)
-    <span class="token-keyword">public</span> <span class="token-type">String</span> hello() {
-        <span class="token-keyword">return</span> <span class="token-string">"Merhaba Spring!"</span>;
-    }
-}</code></pre>
             </div>
         </section>
 
-        <section class="features container" id="ozellikler">
-            <div class="section-heading">
-                <h2>Başlangıç için her şey hazır.</h2>
-                <p>Modern bir Spring Boot uygulamasının temel geliştirme akışı.</p>
+        <section class="capabilities section container" aria-labelledby="capabilities-title">
+            <div class="section-heading reveal">
+                <p class="section-kicker">One brief. Three focused stages.</p>
+                <h2 id="capabilities-title">A smarter path from idea to impact.</h2>
+                <p>
+                    Each stage has a clear role, creating a workflow that is easier to trust,
+                    improve and scale.
+                </p>
             </div>
-            <div class="feature-grid">
-                <article class="feature-card">
-                    <span class="feature-number">01 / MAVEN</span>
-                    <h3>Bağımlılık yönetimi</h3>
-                    <p>Proje paketlerini <code>pom.xml</code> üzerinden ekleyin, güncelleyin ve tek komutla derleyin.</p>
+
+            <div class="capability-grid">
+                <article class="capability-card reveal">
+                    <div class="card-topline">
+                        <span class="card-icon card-icon-blue" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6 5.6 18.4"/>
+                            </svg>
+                        </span>
+                        <span class="card-number">01</span>
+                    </div>
+                    <h3>Strategy</h3>
+                    <p>
+                        Turns your brief into focused creative directions shaped around the
+                        audience, objective and desired response.
+                    </p>
+                    <span class="card-detail">Direction before generation</span>
                 </article>
-                <article class="feature-card">
-                    <span class="feature-number">02 / SPRING</span>
-                    <h3>Hızlı geliştirme</h3>
-                    <p>Hazır starter paketleri ve otomatik yapılandırma sayesinde iş mantığınıza odaklanın.</p>
+
+                <article class="capability-card reveal">
+                    <div class="card-topline">
+                        <span class="card-icon card-icon-lavender" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M4 19.5V20h.5L17.8 6.7l-1.5-1.5L3 18.5v1h1Z"/>
+                                <path d="m14.8 6.7 1.5-1.5 1.2-1.2a1.4 1.4 0 0 1 2 0l.5.5a1.4 1.4 0 0 1 0 2l-2.2 2.2"/>
+                                <path d="M13 19h8"/>
+                            </svg>
+                        </span>
+                        <span class="card-number">02</span>
+                    </div>
+                    <h3>Copywriting</h3>
+                    <p>
+                        Develops distinct, platform-conscious candidates that preserve the
+                        strategic intent without sounding repetitive.
+                    </p>
+                    <span class="card-detail">Variety with a clear purpose</span>
                 </article>
-                <article class="feature-card">
-                    <span class="feature-number">03 / DEPLOY</span>
-                    <h3>Kolay yayınlama</h3>
-                    <p>Uygulamanızı çalıştırılabilir JAR olarak paketleyin ve dilediğiniz ortama taşıyın.</p>
+
+                <article class="capability-card reveal">
+                    <div class="card-topline">
+                        <span class="card-icon card-icon-mint" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                                <path d="M12 3 5 6v5c0 4.5 2.8 8.3 7 10 4.2-1.7 7-5.5 7-10V6l-7-3Z"/>
+                                <path d="m9 12 2 2 4-4"/>
+                            </svg>
+                        </span>
+                        <span class="card-number">03</span>
+                    </div>
+                    <h3>Compliance</h3>
+                    <p>
+                        Reviews every candidate for clarity, risk and alignment before it
+                        reaches your final selection.
+                    </p>
+                    <span class="card-detail">Confidence before delivery</span>
                 </article>
+            </div>
+        </section>
+
+        <section class="workflow-section section" id="workflow" aria-labelledby="workflow-title">
+            <div class="container">
+                <div class="section-heading section-heading-centered reveal">
+                    <p class="section-kicker">Designed to keep you moving</p>
+                    <h2 id="workflow-title">A clear flow from intent to output.</h2>
+                    <p>Give AdwFlow the context; the workflow takes care of the structure.</p>
+                </div>
+
+                <ol class="steps">
+                    <li class="step reveal">
+                        <span class="step-number">1</span>
+                        <div class="step-copy">
+                            <span class="step-label">Describe</span>
+                            <h3>Describe Your Goal</h3>
+                            <p>Share the product, audience, platform and message you want to communicate.</p>
+                        </div>
+                    </li>
+                    <li class="step reveal">
+                        <span class="step-number">2</span>
+                        <div class="step-copy">
+                            <span class="step-label">Generate</span>
+                            <h3>Generate Candidates</h3>
+                            <p>Receive strategically different concepts instead of one generic response.</p>
+                        </div>
+                    </li>
+                    <li class="step reveal">
+                        <span class="step-number">3</span>
+                        <div class="step-copy">
+                            <span class="step-label">Refine</span>
+                            <h3>Review &amp; Refine</h3>
+                            <p>Let structured review improve weak points while preserving what already works.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+        </section>
+
+        <section class="final-cta section container reveal" aria-labelledby="cta-title">
+            <div class="cta-panel">
+                <div class="cta-orb cta-orb-one" aria-hidden="true"></div>
+                <div class="cta-orb cta-orb-two" aria-hidden="true"></div>
+                <div class="cta-content">
+                    <p class="section-kicker">Your next campaign starts here</p>
+                    <h2 id="cta-title">Turn your next idea into a stronger ad.</h2>
+                    <p>Start with a brief. Leave with clear, reviewed creative candidates.</p>
+                    <a class="button button-primary" href="/generate">
+                        Start Generating
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                            <path d="M4 10h12M11 5l5 5-5 5"/>
+                        </svg>
+                    </a>
+                </div>
             </div>
         </section>
     </main>
 
-    <footer class="container">
-        <span>Spring Boot + Maven demo projesi</span>
-        <span>Java 21 ile geliştirildi</span>
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <a class="brand footer-brand" href="/" aria-label="AdwFlow home">
+                <span class="brand-mark brand-mark-small" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                        <path d="m12 2 1.5 5.2a4.6 4.6 0 0 0 3.2 3.2L22 12l-5.3 1.6a4.6 4.6 0 0 0-3.2 3.2L12 22l-1.5-5.2a4.6 4.6 0 0 0-3.2-3.2L2 12l5.3-1.6a4.6 4.6 0 0 0 3.2-3.2L12 2Z"/>
+                    </svg>
+                </span>
+                <span>AdwFlow</span>
+            </a>
+            <p>Focused AI workflows for thoughtful advertising.</p>
+            <p class="copyright">© <span data-current-year>2026</span> AdwFlow</p>
+        </div>
     </footer>
 </body>
 </html>

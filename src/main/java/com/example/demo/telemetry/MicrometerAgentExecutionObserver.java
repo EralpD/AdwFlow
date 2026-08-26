@@ -22,6 +22,10 @@ public final class MicrometerAgentExecutionObserver
             "agent.executions";
     private static final String DURATION_TIMER =
             "agent.execution.duration";
+    private static final String AD_GENERATION_TRACE =
+            "advertisement-generation";
+    private static final String VISUAL_GENERATION_TRACE =
+            "advertisement-visual-generation";
 
     private final Tracer tracer;
     private final MeterRegistry meterRegistry;
@@ -40,6 +44,7 @@ public final class MicrometerAgentExecutionObserver
             AgentContext context
     ) {
         String stage = stage(context);
+        String traceName = traceName(stage);
 
         Span span = tracer.nextSpan()
                 .name("agent." + descriptor.name())
@@ -51,6 +56,32 @@ public final class MicrometerAgentExecutionObserver
                 ))
                 .tag("workflow.id", context.workflowId())
                 .tag("generation.id", context.generationId())
+                .tag("langfuse.trace.name", traceName)
+                .tag(
+                        "langfuse.session.id",
+                        context.workflowId()
+                )
+                .tag(
+                        "langfuse.trace.metadata.workflow_id",
+                        context.workflowId()
+                )
+                .tag(
+                        "langfuse.trace.metadata.generation_id",
+                        context.generationId()
+                )
+                .tag("langfuse.observation.type", "span")
+                .tag(
+                        "langfuse.observation.metadata.agent_name",
+                        descriptor.name()
+                )
+                .tag(
+                        "langfuse.observation.metadata.agent_version",
+                        descriptor.version()
+                )
+                .tag(
+                        "langfuse.observation.metadata.stage",
+                        stage
+                )
                 .tag(
                         "agent.capabilities",
                         capabilities(descriptor)
@@ -77,6 +108,14 @@ public final class MicrometerAgentExecutionObserver
 
         String stage = value.toString().trim();
         return stage.isEmpty() ? "unspecified" : stage;
+    }
+
+    private String traceName(String stage) {
+        if ("visual-generation".equals(stage)) {
+            return VISUAL_GENERATION_TRACE;
+        }
+
+        return AD_GENERATION_TRACE;
     }
 
     private String capabilities(AgentDescriptor descriptor) {
@@ -122,6 +161,10 @@ public final class MicrometerAgentExecutionObserver
 
             span.tag("agent.status", "success");
             span.tag(
+                    "langfuse.observation.level",
+                    "DEFAULT"
+            );
+            span.tag(
                     "agent.total_attempts",
                     Integer.toString(metadata.attempts())
             );
@@ -136,6 +179,14 @@ public final class MicrometerAgentExecutionObserver
             }
 
             span.tag("agent.status", "error");
+            span.tag(
+                    "langfuse.observation.level",
+                    "ERROR"
+            );
+            span.tag(
+                    "langfuse.observation.status_message",
+                    failure.getClass().getSimpleName()
+            );
             span.tag(
                     "error.type",
                     failure.getClass().getSimpleName()

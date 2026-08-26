@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Transform your advertising ideas into engaging content.">
-    <title>Generate Add</title>
+    <title>Generate Ad</title>
     <link rel="stylesheet" href="/css/generate.css">
 </head>
 <body>
@@ -33,7 +33,7 @@
                     </svg>
                 </div>
 
-                <h1 id="page-title">Generate Add</h1>
+                <h1 id="page-title">Generate Ad</h1>
                 <p class="subtitle">
                     Describe your product, target audience, and message;
                     we will turn your idea into compelling ad copy.
@@ -107,13 +107,36 @@
                 <section class="generation-result" id="generation-result" aria-live="polite" hidden>
                     <div class="result-header">
                         <div>
-                            <p class="result-eyebrow">Generation result</p>
-                            <h2>Your ad candidates</h2>
+                            <p class="result-eyebrow">Campaign studio</p>
+                            <h2>Your generated ads</h2>
                         </div>
                         <span class="result-status" id="result-status"></span>
                     </div>
 
                     <p class="result-summary" id="result-summary"></p>
+
+                    <div class="creative-toolbar" aria-label="Ad preview settings">
+                        <div class="format-picker" aria-label="Post format" role="group">
+                            <button class="format-button is-active" type="button" data-format="portrait" aria-pressed="true">
+                                <span class="format-icon is-portrait" aria-hidden="true"></span>
+                                Portrait <small>4:5</small>
+                            </button>
+                            <button class="format-button" type="button" data-format="square" aria-pressed="false">
+                                <span class="format-icon is-square" aria-hidden="true"></span>
+                                Square <small>1:1</small>
+                            </button>
+                            <button class="format-button" type="button" data-format="story" aria-pressed="false">
+                                <span class="format-icon is-story" aria-hidden="true"></span>
+                                Story <small>9:16</small>
+                            </button>
+                        </div>
+
+                        <p class="visual-model-note">
+                            <span class="model-spark" aria-hidden="true"></span>
+                            Visuals by GPT Image 2
+                        </p>
+                    </div>
+
                     <div class="candidate-list" id="candidate-list"></div>
                 </section>
             </section>
