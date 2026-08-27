@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +8,8 @@
     <title>AdwFlow — AI-Powered Advertising Workflow</title>
     <link rel="stylesheet" href="/css/home.css">
     <script src="/js/home.js" defer></script>
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
 </head>
 <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
@@ -15,7 +17,7 @@
     <div class="ambient ambient-one" aria-hidden="true"></div>
     <div class="ambient ambient-two" aria-hidden="true"></div>
 
-    <header class="site-header">
+    <header class="site-header" th:replace="~{fragments/navigation :: header}">
         <nav class="navbar container" aria-label="Primary navigation">
             <a class="brand" href="/" aria-label="AdwFlow home">
                 <span class="brand-mark" aria-hidden="true">
@@ -28,8 +30,8 @@
 
             <div class="nav-actions">
                 <a class="nav-link" href="#workflow">How it works</a>
-                <a class="nav-cta" href="/generate">
-                    Generate
+                <a class="nav-cta" th:href="@{/dashboard}">
+                    Dashboard
                     <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                         <path d="M4 10h12M11 5l5 5-5 5"/>
                     </svg>
@@ -57,8 +59,8 @@
                 </p>
 
                 <div class="hero-actions">
-                    <a class="button button-primary" href="/generate">
-                        Generate Your Ad
+                    <a class="button button-primary" th:href="@{/dashboard}">
+                        Open Dashboard
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path d="M4 10h12M11 5l5 5-5 5"/>
                         </svg>
@@ -248,8 +250,8 @@
                     <p class="section-kicker">Your next campaign starts here</p>
                     <h2 id="cta-title">Turn your next idea into a stronger ad.</h2>
                     <p>Start with a brief. Leave with clear, reviewed creative candidates.</p>
-                    <a class="button button-primary" href="/generate">
-                        Start Generating
+                    <a class="button button-primary" th:href="@{/dashboard}">
+                        Open Dashboard
                         <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                             <path d="M4 10h12M11 5l5 5-5 5"/>
                         </svg>

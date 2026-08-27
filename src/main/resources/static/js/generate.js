@@ -1,6 +1,13 @@
 (() => {
+    const securityHeaders = () => {
+        const token = document.querySelector('meta[name="_csrf"]')?.content;
+        const header = document.querySelector('meta[name="_csrf_header"]')?.content;
+        if (!token || !header) {
+            throw new Error("Your security token is missing. Refresh the page or log in again.");
+        }
+        return { "Content-Type": "application/json", [header]: token };
+    };
     const WORD_LIMIT = 5000;
-    const VISUAL_GENERATION_ENDPOINT = "/api/advertisements/visuals/generate";
     const FORMAT_CONFIG = {
         portrait: { label: "Portrait 4:5", width: 1080, height: 1350 },
         square: { label: "Square 1:1", width: 1080, height: 1080 },
@@ -180,6 +187,8 @@
         view.card.dataset.visualState = state;
         view.visualStatus.textContent = message;
         view.retryButton.hidden = state !== "error";
+        view.retryButton.disabled = state === "generating";
+        view.downloadButton.disabled = state !== "ready";
         view.placeholderLabel.textContent = state === "error"
             ? "Visual unavailable"
             : state === "ready"
@@ -188,6 +197,7 @@
     };
 
     const applyVisual = (view, imageUrl) => {
+        view.imageUrl = imageUrl;
         setVisualState(view, "generating", "Finishing visual…");
         view.image.alt = `Generated visual for ${view.candidate.headline}`;
 
@@ -200,12 +210,12 @@
             // Data URLs and same-document assets need no CORS configuration.
         }
 
-        view.image.addEventListener("load", () => {
+        view.image.onload = () => {
             setVisualState(view, "ready", "Visual ready");
-        }, { once: true });
-        view.image.addEventListener("error", () => {
+        };
+        view.image.onerror = () => {
             setVisualState(view, "error", "The generated visual could not be loaded.");
-        }, { once: true });
+        };
         view.image.src = imageUrl;
     };
 
@@ -219,81 +229,14 @@
     };
 
 
-const requestCandidateVisual = async (view) => {
-        if (!activeGenerationContext) {
-            setVisualState(
-                view,
-                "error",
-                "Generation context is not available."
-            );
+    const retrySavedVisual = (view) => {
+        if (!view.imageUrl) {
+            setVisualState(view, "error", "No saved visual is available. Open My Works to check this campaign.");
             return;
         }
-
-        setVisualState(
-            view,
-            "generating",
-            "GPT Image 2 is creating this visual…"
-        );
-
-        const format = FORMAT_CONFIG[activeFormat];
-
-        try {
-            const payload = {
-                workflowId: activeGenerationContext.workflowId,
-                generationId: activeGenerationContext.generationId,
-                candidateId: view.candidate.candidateId,
-                sourceAngleId: view.candidate.sourceAngleId,
-
-                brandName: activeGenerationContext.brandLabel,
-
-                headline: view.candidate.headline,
-                primaryText: view.candidate.primaryText,
-                callToAction: view.candidate.callToAction,
-                hashtags: view.candidate.hashtags ?? [],
-                format: {
-                    name: activeFormat,
-                    width: format.width,
-                    height: format.height
-                }
-            };
-
-            const response = await fetch(VISUAL_GENERATION_ENDPOINT, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const message = response.status === 404
-                    ? "Visual generator is not connected yet."
-                    : await readErrorMessage(response);
-
-                throw new Error(message);
-            }
-
-            const visual = await response.json();
-            const imageUrl = getVisualUrl(visual);
-
-            if (!imageUrl) {
-                throw new Error(
-                    "The visual service returned no image."
-                );
-            }
-
-            applyVisual(view, imageUrl);
-        } catch (error) {
-            setVisualState(
-                view,
-                "error",
-                error instanceof Error
-                    ? error.message
-                    : "Visual generation failed."
-            );
-        }
+        // Retry loading the saved file; never pay to regenerate an image on a load failure.
+        applyVisual(view, view.imageUrl);
     };
-
     const drawCoverImage = (context, image, width, height) => {
         const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight);
         const renderedWidth = image.naturalWidth * scale;
@@ -536,7 +479,7 @@ const requestCandidateVisual = async (view) => {
         const retryButton = document.createElement("button");
         retryButton.type = "button";
         retryButton.className = "candidate-action is-retry";
-        retryButton.textContent = "Retry visual";
+        retryButton.textContent = "Reload saved visual";
         retryButton.hidden = true;
         actions.append(downloadButton, copyButton, retryButton);
 
@@ -566,7 +509,7 @@ const requestCandidateVisual = async (view) => {
             }
         });
         downloadButton.addEventListener("click", () => downloadCreative(view));
-        retryButton.addEventListener("click", () => requestCandidateVisual(view));
+        retryButton.addEventListener("click", () => retrySavedVisual(view));
 
         return view;
     };
@@ -603,12 +546,12 @@ const requestCandidateVisual = async (view) => {
             if (embeddedUrl) {
                 applyVisual(view, embeddedUrl);
             } else {
-                requestCandidateVisual(view);
+                setVisualState(view, "error", "No saved visual is available for this variation.");
             }
         });
 
         resultSummary.textContent = [
-            `${candidates.length} campaign-ready variation(s).`,
+            `${candidates.length} saved variation(s).`,
             `${result.revisionRounds ?? 0} revision round(s).`,
             `Workflow ${result.workflowId}.`
         ].join(" ");
@@ -618,6 +561,9 @@ const requestCandidateVisual = async (view) => {
     };
 
     const readErrorMessage = async (response) => {
+        if (response.status === 401 || response.status === 403) {
+            document.getElementById("session-actions").hidden = false;
+        }
         try {
             const error = await response.json();
             return error.message || `Request failed with status ${response.status}.`;
@@ -742,6 +688,7 @@ const requestCandidateVisual = async (view) => {
 
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
+        if (generateButton.disabled) return;
         closeAttachmentMenu();
 
         const brief = textarea.value.trim();
@@ -753,12 +700,9 @@ const requestCandidateVisual = async (view) => {
         }
 
         const hadImages = selectedImages.length > 0;
-        setFormMessage(
-            hadImages
-                ? "This first test sends the text brief only; selected images are not sent to the model yet."
-                : "",
-            "info"
-        );
+        setFormMessage("Generating copy and three visuals, then saving your work. This can take a few minutes."
+            + (hadImages ? " Attached images are not sent to the model yet; only your text brief is used." : ""), "info");
+        document.getElementById("saved-work-link").hidden = true;
 
         generationResult.hidden = true;
         setSubmitting(true);
@@ -766,9 +710,8 @@ const requestCandidateVisual = async (view) => {
         try {
             const response = await fetch("/api/advertisements/generate", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                credentials: "same-origin",
+                headers: securityHeaders(),
                 body: JSON.stringify({
                     brief,
                     platform: "Instagram",
@@ -787,10 +730,15 @@ const requestCandidateVisual = async (view) => {
 
             const result = await response.json();
             renderGenerationResult(result);
+            const savedLink = document.getElementById("saved-work-link");
+            if (Number.isSafeInteger(result.workId) && result.workId > 0) {
+                savedLink.href = `/dashboard/works/${result.workId}`;
+                savedLink.hidden = false;
+            }
             setFormMessage(
                 result.status === "PASS"
-                    ? "Generation completed successfully."
-                    : "The revision limit was reached; inspect the remaining findings.",
+                    ? "Saved to My Works with all three visuals."
+                    : "Saved to My Works with all three visuals. The revision limit was reached; inspect the remaining findings.",
                 result.status === "PASS" ? "success" : "error"
             );
         } catch (error) {

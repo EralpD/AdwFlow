@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access restricted — AdwFlow</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
+</head>
+<body>
+    <header th:replace="~{fragments/navigation :: header}"></header>
+    <main class="account-single container">
+        <section class="account-card error-card" aria-labelledby="error-title">
+            <span class="account-kicker">403 · ACCESS RESTRICTED</span>
+            <h1 id="error-title">Let's get you<br><span>back on track.</span></h1>
+            <p class="card-description">You don't have permission for this action, or your security token has expired. Return to the page and refresh it before trying again.</p>
+            <div class="panel-actions">
+                <a class="button button-primary" th:href="@{/}">Back to home</a>
+                <a class="button button-secondary" th:if="${currentUser == null}" th:href="@{/login}">Login</a>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

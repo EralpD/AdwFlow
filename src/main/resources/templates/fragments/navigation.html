@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<body>
+<header class="site-header" th:fragment="header">
+    <nav class="navbar container account-navbar" aria-label="Primary navigation">
+        <a class="brand" th:href="@{/}" aria-label="AdwFlow home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                    <path d="m12 2 1.5 5.2a4.6 4.6 0 0 0 3.2 3.2L22 12l-5.3 1.6a4.6 4.6 0 0 0-3.2 3.2L12 22l-1.5-5.2a4.6 4.6 0 0 0-3.2-3.2L2 12l5.3-1.6a4.6 4.6 0 0 0 3.2-3.2L12 2Z"/>
+                </svg>
+            </span>
+            <span>AdwFlow</span>
+        </a>
+        <div class="nav-actions">
+            <a class="nav-link workflow-nav-link" th:href="@{/#workflow}">How it works</a>
+            <a class="nav-link" th:if="${currentUser == null}" th:href="@{/login}">Login</a>
+            <a class="nav-link register-link" th:if="${currentUser == null}" th:href="@{/register}">Register</a>
+            <span class="user-name" th:if="${currentUser != null}" th:text="${currentUser.displayName}" th:title="${currentUser.displayName}"></span>
+            <a class="nav-link" th:if="${currentUser != null and currentUser.admin}" th:href="@{/admin}">Admin</a>
+            <form class="logout-form" th:if="${currentUser != null}" th:action="@{/logout}" method="post">
+                <button class="nav-link" type="submit">Logout</button>
+            </form>
+            <a class="nav-cta" th:href="@{/dashboard}">
+                Dashboard
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 10h12M11 5l5 5-5 5"/></svg>
+            </a>
+        </div>
+    </nav>
+</header>
+</body>
+</html>

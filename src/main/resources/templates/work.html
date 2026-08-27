@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${work.title + ' — AdwFlow'}">My Work — AdwFlow</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/dashboard.js}" defer></script>
+    <script th:src="@{/js/brand-motion.js}" defer></script>
+</head>
+<body class="workspace-page">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="workspace-shell">
+        <aside class="workspace-sidebar" aria-label="Workspace sidebar"><div th:replace="~{fragments/dashboard-navigation :: navigation}"></div></aside>
+        <div class="workspace-main">
+            <header class="workspace-topbar">
+                <div class="workspace-location">
+                    <button class="workspace-menu-trigger" id="workspace-menu-trigger" type="button" aria-controls="workspace-menu" aria-expanded="false" aria-haspopup="dialog" hidden>Menu</button>
+                    <a class="workspace-secondary-link" th:href="@{/dashboard}">← My Works</a>
+                </div>
+                <a class="workspace-generate" th:href="@{/dashboard/generate}">Generate</a>
+            </header>
+            <main class="workspace-content" id="main-content" tabindex="-1">
+                <header class="workspace-heading">
+                    <p class="workspace-eyebrow" th:text="|SAVED CAMPAIGN · ${#lists.size(work.variations)} VISUALS|"></p>
+                    <h1 class="workspace-work-title" th:text="${work.title}"></h1>
+                    <p>Created <time th:datetime="${work.createdAt}" th:text="${work.createdLabel}"></time><br>
+                        Available until <time th:datetime="${work.expiresAt}" th:text="${work.expiresLabel}"></time></p>
+                </header>
+                <p class="workspace-work-warning" th:if="${work.status != 'PASS'}">This campaign reached the revision limit. Review the copy carefully before using it.</p>
+                <details class="workspace-saved-brief"><summary>Original brief</summary><p th:text="${work.brief}"></p></details>
+                <div class="workspace-variations">
+                    <article class="workspace-variation" th:each="variation, index : ${work.variations}">
+                        <div class="workspace-work-cover">
+                            <img th:src="@{${variation.imageUrl}}" th:alt="${variation.candidate.headline}" decoding="async" data-work-image>
+                            <span class="workspace-image-fallback" hidden>Image unavailable</span>
+                        </div>
+                        <div class="workspace-variation-copy">
+                            <p class="workspace-eyebrow" th:text="|VARIATION ${index.count}|"></p>
+                            <h2 th:text="${variation.candidate.headline}"></h2>
+                            <p th:text="${variation.candidate.primaryText}"></p>
+                            <p><strong th:text="${variation.candidate.callToAction}"></strong></p>
+                            <p class="workspace-hashtags" th:text="${#strings.listJoin(variation.candidate.hashtags, ' ')}"></p>
+                            <a class="workspace-secondary-link" th:href="@{/dashboard/works/{id}/images/{index}(id=${work.id},index=${index.index},download=true)}">Download original visual</a>
+                        </div>
+                    </article>
+                </div>
+                <p class="workspace-review-note">These are the original generated visuals. The campaign text is saved alongside each visual.</p>
+            </main>
+        </div>
+    </div>
+    <dialog class="workspace-mobile-menu" id="workspace-menu" aria-labelledby="workspace-menu-title">
+        <div class="workspace-mobile-menu-heading"><h2 id="workspace-menu-title">Workspace menu</h2><button class="workspace-menu-close" type="button" data-menu-close autofocus>Close</button></div>
+        <div th:replace="~{fragments/dashboard-navigation :: navigation}"></div>
+    </dialog>
+</body>
+</html>

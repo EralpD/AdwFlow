@@ -524,6 +524,10 @@ kbd {
     font-size: 0.76rem;
 }
 
+.session-actions { color: #52627d; font-size: .86rem; line-height: 1.6; }
+.session-actions a { color: #19489b; font-weight: 700; text-decoration: underline; }
+#saved-work-link { color: #19489b; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
+
 .form-message {
     margin: 16px 0 0;
     padding: 12px 15px;
@@ -1097,6 +1101,8 @@ kbd {
 .candidate-action[hidden] {
     display: none;
 }
+
+.candidate-action:disabled { opacity: .6; cursor: wait; }
 
 .format-button:focus-visible,
 .candidate-action:focus-visible {

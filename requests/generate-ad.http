@@ -1,6 +1,14 @@
-### Generate three reviewed Instagram ad candidates
+# Sign in through /login first. Use that session's JSESSIONID and the current
+# /dashboard/generate page's _csrf meta value. Keep these local; never commit real values.
+# Most browser users should use the /dashboard/generate UI, which sends these automatically.
+@sessionId = REPLACE_LOCALLY
+@csrfToken = REPLACE_LOCALLY
+
+### Generate three reviewed Instagram ad candidates (authenticated, CSRF protected)
 POST http://localhost:8080/api/advertisements/generate
 Content-Type: application/json
+Cookie: JSESSIONID={{sessionId}}
+X-CSRF-TOKEN: {{csrfToken}}
 
 {
   "brief": "Create three Instagram advertisement variations for Focusly, a fictional productivity application. Known product capabilities: users can manually create tasks, tasks can be grouped into projects, users can create a daily priority list, and the application offers a 14-day free trial without requiring a credit card. The target audience is freelance designers who feel overwhelmed by scattered tasks and multiple client projects. The objective is to encourage users to start the free trial. Do not use percentages, guarantees, false urgency, fear, or unsupported productivity claims.",

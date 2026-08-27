@@ -1,7 +1,8 @@
 package com.example.demo.generate.api;
 
-import com.example.demo.workflow.AdvertisingGenerationResult;
-import com.example.demo.workflow.AdvertisingWorkflow;
+import com.example.demo.works.SavedWorkGenerationService;
+import com.example.demo.security.AccountPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,17 +12,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/advertisements")
 public final class GenerateAdvertisementApiController {
 
-    private final AdvertisingWorkflow workflow;
+    private final SavedWorkGenerationService works;
 
     public GenerateAdvertisementApiController(
-            AdvertisingWorkflow workflow
+            SavedWorkGenerationService works
     ) {
-        this.workflow = workflow;
+        this.works = works;
     }
 
     @PostMapping("/generate")
-    public AdvertisingGenerationResult generate(
-            @RequestBody GenerateAdvertisementRequest request
+    public SavedAdvertisementResponse generate(
+            @RequestBody GenerateAdvertisementRequest request,
+            @AuthenticationPrincipal AccountPrincipal principal
     ) {
         if (request == null) {
             throw new IllegalArgumentException(
@@ -29,8 +31,6 @@ public final class GenerateAdvertisementApiController {
             );
         }
 
-        return workflow.generateAdvertisement(
-                request.toCommand()
-        );
+        return SavedAdvertisementResponse.from(works.generate(principal, request.toCommand()));
     }
 }

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f9ff">
+    <title>Register — AdwFlow</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header th:replace="~{fragments/navigation :: header}"></header>
+    <main id="main-content" class="account-layout container">
+        <section class="account-intro" aria-labelledby="intro-title">
+            <p class="eyebrow"><span aria-hidden="true">✦</span> Make room for your next idea</p>
+            <h1 id="intro-title">Start your<br><span>creative flow.</span></h1>
+            <p class="account-description">Bring your ideas. Find your direction. Create an account for a more thoughtful advertising workflow.</p>
+            <div class="account-note"><span class="note-symbol mint-symbol" aria-hidden="true">✓</span><div><strong>Built around your brief</strong><p>From the first direction to your next campaign candidate.</p></div></div>
+        </section>
+        <section class="account-card" aria-labelledby="register-title">
+            <span class="account-kicker">LET'S GET STARTED</span>
+            <h2 id="register-title">Create your account</h2>
+            <p class="card-description">Your next creative chapter begins here.</p>
+            <form class="account-form" th:action="@{/register}" th:object="${registration}" method="post">
+                <div class="account-alert alert-error" role="alert" th:if="${#fields.hasErrors('*')}">
+                    <strong>Please check your details.</strong>
+                    <ul><li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li></ul>
+                </div>
+                <div class="form-field">
+                    <label for="displayName">Name</label>
+                    <input id="displayName" th:field="*{displayName}" type="text" autocomplete="name" minlength="2" maxlength="80" placeholder="Your name" required
+                           aria-describedby="name-error" th:attr="aria-invalid=${#fields.hasErrors('displayName')}">
+                    <span class="field-error" id="name-error" th:errors="*{displayName}"></span>
+                </div>
+                <div class="form-field">
+                    <label for="email">Email address</label>
+                    <input id="email" th:field="*{email}" type="email" autocomplete="username" maxlength="254" placeholder="you@example.com" required
+                           aria-describedby="email-error" th:attr="aria-invalid=${#fields.hasErrors('email')}">
+                    <span class="field-error" id="email-error" th:errors="*{email}"></span>
+                </div>
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="64" placeholder="Create a strong password" required
+                           aria-describedby="password-help password-error" th:attr="aria-invalid=${#fields.hasErrors('password') or #fields.hasErrors('passwordWithinBcryptLimit')}">
+                    <span class="field-hint" id="password-help">12–64 characters. A memorable passphrase works well. Maximum 72 UTF-8 bytes.</span>
+                    <span class="field-error" id="password-error" th:errors="*{password}"></span>
+                </div>
+                <div class="form-field">
+                    <label for="confirmPassword">Confirm password</label>
+                    <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" maxlength="64" placeholder="Enter your password again" required
+                           aria-describedby="confirmation-error" th:attr="aria-invalid=${#fields.hasErrors('confirmPassword') or #fields.hasErrors('passwordsMatching')}">
+                    <span class="field-error" id="confirmation-error" th:errors="*{confirmPassword}"></span>
+                </div>
+                <button class="button button-primary account-submit" type="submit">Create account <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="account-switch">Already have an account? <a th:href="@{/login}">Login</a></p>
+            <a class="back-link" th:href="@{/}"><span aria-hidden="true">←</span> Back to home</a>
+        </section>
+    </main>
+    <footer class="account-footer container">A little clarity. A lot of creative possibility.</footer>
+</body>
+</html>

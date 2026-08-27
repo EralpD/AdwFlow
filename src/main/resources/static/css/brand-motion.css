@@ -1,0 +1,12 @@
+.brand-mark {
+    transform: rotate(var(--brand-rotation, 0deg));
+    transform-origin: center;
+    transition: transform 420ms cubic-bezier(.22, .8, .28, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .brand-mark {
+        transform: none;
+        transition: none;
+    }
+}

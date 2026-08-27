@@ -1,22 +1,26 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
     <meta name="description" content="Transform your advertising ideas into engaging content.">
-    <title>Generate Ad</title>
-    <link rel="stylesheet" href="/css/generate.css">
+    <title>Generate — AdwFlow Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/generate.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
 </head>
 <body>
     <div class="page-shell">
         <header class="topbar">
-            <a class="brand" href="/" aria-label="Return to homepage">
+            <a class="brand" th:href="@{/dashboard}" aria-label="Return to dashboard">
                 <span class="brand-mark" aria-hidden="true">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
                         <path d="m12 2 1.5 5.2a4.6 4.6 0 0 0 3.2 3.2L22 12l-5.3 1.6a4.6 4.6 0 0 0-3.2 3.2L12 22l-1.5-5.2a4.6 4.6 0 0 0-3.2-3.2L2 12l5.3-1.6a4.6 4.6 0 0 0 3.2-3.2L12 2Z"/>
                     </svg>
                 </span>
-                Ad Studio
+                Dashboard
             </a>
             <span class="status" id="ai-status">
                 <span class="status-dot"></span>
@@ -103,6 +107,10 @@
                 <p class="privacy-note">Your input is used only to generate your advertisement.</p>
 
                 <p class="form-message" id="form-message" role="status" aria-live="polite" hidden></p>
+                <p><a class="session-actions" id="saved-work-link" hidden>Open saved work in My Works →</a></p>
+                <p class="session-actions" id="session-actions" hidden>
+                    <a th:href="@{/dashboard/generate}">Refresh this page</a> or <a th:href="@{/login}">log in again</a> to continue.
+                </p>
 
                 <section class="generation-result" id="generation-result" aria-live="polite" hidden>
                     <div class="result-header">
@@ -133,7 +141,7 @@
 
                         <p class="visual-model-note">
                             <span class="model-spark" aria-hidden="true"></span>
-                            Visuals by GPT Image 2
+                            Three original visuals are saved. Format buttons adjust the preview crop.
                         </p>
                     </div>
 
@@ -143,6 +151,6 @@
         </main>
     </div>
 
-    <script src="/js/generate.js"></script>
+    <script th:src="@{/js/generate.js}"></script>
 </body>
 </html>

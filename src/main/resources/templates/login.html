@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f9ff">
+    <title>Login — AdwFlow</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header th:replace="~{fragments/navigation :: header}"></header>
+    <main id="main-content" class="account-layout container">
+        <section class="account-intro" aria-labelledby="intro-title">
+            <p class="eyebrow"><span aria-hidden="true">✦</span> Your next idea starts here</p>
+            <h1 id="intro-title">Good to have<br><span>you back.</span></h1>
+            <p class="account-description">A clear brief. A fresh perspective. Pick up your creative flow and turn your next idea into something worth sharing.</p>
+            <div class="account-note"><span class="note-symbol" aria-hidden="true">✧</span><div><strong>One focused creative space</strong><p>Strategy, copywriting and thoughtful review, together.</p></div></div>
+        </section>
+        <section class="account-card" aria-labelledby="login-title">
+            <span class="account-kicker">WELCOME BACK</span>
+            <h2 id="login-title">Login to AdwFlow</h2>
+            <p class="card-description">Enter your details to continue.</p>
+            <p class="account-alert alert-error" role="alert" th:if="${param.error != null}">Invalid email or password. Please try again.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.registered != null}">Your account is ready. Log in to start creating.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.logout != null}">You have been logged out safely.</p>
+            <form class="account-form" th:action="@{/login}" method="post">
+                <div class="form-field">
+                    <label for="email">Email address</label>
+                    <input id="email" name="email" type="email" autocomplete="username" maxlength="254" placeholder="you@example.com" required>
+                </div>
+                <div class="form-field">
+                    <label for="password">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="current-password" maxlength="64" placeholder="Enter your password" required>
+                </div>
+                <button class="button button-primary account-submit" type="submit">Login <span aria-hidden="true">→</span></button>
+            </form>
+            <p class="account-switch">New to AdwFlow? <a th:href="@{/register}">Create an account</a></p>
+            <a class="back-link" th:href="@{/}"><span aria-hidden="true">←</span> Back to home</a>
+        </section>
+    </main>
+    <footer class="account-footer container">A little clarity. A lot of creative possibility.</footer>
+</body>
+</html>
