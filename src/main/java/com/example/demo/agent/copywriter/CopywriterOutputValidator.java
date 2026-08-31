@@ -80,6 +80,11 @@ public final class CopywriterOutputValidator {
             );
 
             requireText(
+                    candidate.supportingText(),
+                    candidate.candidateId() + ".supportingText"
+            );
+
+            requireText(
                     candidate.primaryText(),
                     candidate.candidateId() + ".primaryText"
             );
@@ -88,6 +93,10 @@ public final class CopywriterOutputValidator {
                     candidate.callToAction(),
                     candidate.candidateId() + ".callToAction"
             );
+
+            requireText(candidate.offerBadge(), candidate.candidateId() + ".offerBadge");
+            requireText(candidate.disclosureText(), candidate.candidateId() + ".disclosureText");
+            requireText(candidate.visualDirection(), candidate.candidateId() + ".visualDirection");
 
             String normalizedId =
                     normalize(candidate.candidateId());

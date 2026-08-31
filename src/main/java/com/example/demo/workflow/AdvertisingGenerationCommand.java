@@ -1,6 +1,11 @@
 package com.example.demo.workflow;
 
 import com.example.demo.agent.strategy.StrategyRequest;
+import com.example.demo.workflow.context.CampaignTermsData;
+import com.example.demo.workflow.context.ProductCatalogData;
+import com.example.demo.workflow.context.TrustedGenerationContext;
+
+import java.util.List;
 
 public record AdvertisingGenerationCommand(
         String brief,
@@ -10,7 +15,9 @@ public record AdvertisingGenerationCommand(
         String knownTargetAudience,
         String language,
         String reviewLanguage,
-        int requestedAngleCount
+        int requestedAngleCount,
+        CampaignTermsData campaign,
+        ProductCatalogData product
 ) {
 
     public AdvertisingGenerationCommand {
@@ -19,16 +26,16 @@ public record AdvertisingGenerationCommand(
         brandName = defaultIfBlank(brandName, "unspecified");
         brandVoice = defaultIfBlank(
                 brandVoice,
-                "Calm, clear and encouraging"
+                "Sakin, net ve motive edici"
         );
         knownTargetAudience = defaultIfBlank(
                 knownTargetAudience,
                 "unspecified"
         );
-        language = defaultIfBlank(language, "English");
+        language = defaultIfBlank(language, "Turkish");
         reviewLanguage = defaultIfBlank(
                 reviewLanguage,
-                "English"
+                language
         );
 
         if (requestedAngleCount == 0) {
@@ -43,14 +50,24 @@ public record AdvertisingGenerationCommand(
         }
     }
 
-    public StrategyRequest toStrategyRequest() {
+    public StrategyRequest toStrategyRequest(TrustedGenerationContext trustedContext) {
+        return toStrategyRequest(trustedContext, List.of());
+    }
+
+    public StrategyRequest toStrategyRequest(
+            TrustedGenerationContext trustedContext,
+            List<String> revisionGuidance
+    ) {
         return new StrategyRequest(
                 brief,
                 platform,
                 brandName,
                 brandVoice,
                 knownTargetAudience,
-                requestedAngleCount
+                language,
+                requestedAngleCount,
+                trustedContext,
+                revisionGuidance
         );
     }
 

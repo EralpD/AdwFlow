@@ -15,6 +15,12 @@ EXPECTED REVIEW COUNT:
 
 --- STRATEGY DATA END ---
 
+--- TRUSTED PRODUCT AND CAMPAIGN DATA START ---
+
+<trustedContext>
+
+--- TRUSTED PRODUCT AND CAMPAIGN DATA END ---
+
 --- ADVERTISING CANDIDATES START ---
 
 <candidates>
@@ -45,8 +51,12 @@ Requirements:
   OTHER.
 - Use only these reviewed field values:
   HEADLINE,
+  SUPPORTING_TEXT,
   PRIMARY_TEXT,
   CALL_TO_ACTION,
+  OFFER_BADGE,
+  DISCLOSURE_TEXT,
+  VISUAL_DIRECTION,
   HASHTAGS,
   CLAIMS_USED,
   OVERALL,
@@ -61,3 +71,4 @@ Requirements:
 - confidence must be between 0.0 and 1.0.
 - Do not produce rewritten advertisement copy.
 - Do not output the final workflow decision.
+- Verify every factual claim, offer, price, date and disclosure against the trusted data block.

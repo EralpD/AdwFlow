@@ -45,10 +45,13 @@ public class SavedWorkGenerationService {
         if (retention.isNegative() || retention.isZero()) throw new IllegalArgumentException("Work retention must be positive");
     }
 
-    public HistoryWork generate(AccountPrincipal principal, AdvertisingGenerationCommand command) {
+    public WorkGenerationOutcome generate(AccountPrincipal principal, AdvertisingGenerationCommand command) {
         requireAccount(principal);
         if (command.requestedAngleCount() != 3) throw new IllegalArgumentException("Saved works require exactly three variations.");
         AdvertisingGenerationResult result = workflow.generateAdvertisement(command);
+        if (result.status() == GenerationStatus.NEEDS_USER_INPUT) {
+            return new WorkGenerationOutcome(result, null);
+        }
         if (result == null || result.candidates().size() != 3
                 || result.candidates().stream().anyMatch(c -> c.candidateId() == null || c.headline() == null || c.headline().isBlank())
                 || result.candidates().stream().map(c -> c.candidateId()).distinct().count() != 3) {
@@ -62,8 +65,9 @@ public class SavedWorkGenerationService {
             for (int i = 0; i < result.candidates().size(); i++) {
                 var candidate = result.candidates().get(i);
                 var input = new VisualGenerationRequest(candidate.candidateId(), candidate.sourceAngleId(),
-                        command.brandName(), candidate.headline(), candidate.primaryText(), candidate.callToAction(),
-                        candidate.hashtags(), VisualFormat.PORTRAIT);
+                        command.brandName(), candidate.headline(), candidate.supportingText(), candidate.primaryText(),
+                        candidate.callToAction(), candidate.offerBadge(), candidate.disclosureText(),
+                        candidate.visualDirection(), candidate.hashtags(), VisualFormat.PORTRAIT);
                 var context = AgentContext.initial(result.workflowId(), result.generationId())
                         .withAttribute("stage", "visual-generation").withAttribute("candidateId", candidate.candidateId());
                 var visual = executor.execute(visuals, input, context, AgentExecutionPolicy.noRetry()).output();
@@ -72,7 +76,7 @@ public class SavedWorkGenerationService {
             }
             String headline = result.candidates().getFirst().headline().strip();
             String title = headline.codePoints().limit(255).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append).toString();
-            return Objects.requireNonNull(transaction.execute(status -> {
+            HistoryWork saved = Objects.requireNonNull(transaction.execute(status -> {
                 transactionOutcome.set(TransactionSynchronization.STATUS_UNKNOWN);
                 TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                     @Override public void afterCompletion(int completionStatus) { transactionOutcome.set(completionStatus); }
@@ -82,6 +86,7 @@ public class SavedWorkGenerationService {
                 return history.saveAndFlush(new HistoryWork(principal.getUserId(), title, command.brief(),
                         new WorkContent(result, images), now, now.plus(retention)));
             }));
+            return new WorkGenerationOutcome(result, saved);
         } catch (RuntimeException failure) {
             if (transactionOutcome.get() == TransactionSynchronization.STATUS_ROLLED_BACK) {
                 try { storage.deleteGroup(group); }

@@ -8,8 +8,12 @@ public record AdCandidate(
         String candidateId,
         String sourceAngleId,
         String headline,
+        String supportingText,
         String primaryText,
         String callToAction,
+        String offerBadge,
+        String disclosureText,
+        String visualDirection,
         List<String> hashtags,
         List<String> claimsUsed
 ) {

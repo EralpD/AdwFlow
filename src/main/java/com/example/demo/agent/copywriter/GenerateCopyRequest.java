@@ -5,11 +5,13 @@ package com.example.demo.agent.copywriter;
 import java.util.Objects;
 
 import com.example.demo.agent.strategy.StrategyResult;
+import com.example.demo.workflow.context.TrustedGenerationContext;
 
 public record GenerateCopyRequest(
         StrategyResult strategy,
         String platform,
-        String language
+        String language,
+        TrustedGenerationContext trustedContext
 ) implements CopywriterRequest {
 
     public GenerateCopyRequest {
@@ -25,7 +27,11 @@ public record GenerateCopyRequest(
         }
 
         platform = defaultIfBlank(platform, "unspecified");
-        language = defaultIfBlank(language, "English");
+        language = defaultIfBlank(language, "Turkish");
+        trustedContext = Objects.requireNonNull(
+                trustedContext,
+                "trustedContext must not be null"
+        );
     }
 
     private static String defaultIfBlank(

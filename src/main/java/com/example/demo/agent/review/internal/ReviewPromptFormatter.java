@@ -116,12 +116,28 @@ public final class ReviewPromptFormatter {
                     .append(candidate.headline())
                     .append('\n');
 
+            output.append("Supporting visual text: ")
+                    .append(candidate.supportingText())
+                    .append('\n');
+
             output.append("Primary text: ")
                     .append(candidate.primaryText())
                     .append('\n');
 
             output.append("Call to action: ")
                     .append(candidate.callToAction())
+                    .append('\n');
+
+            output.append("Offer badge: ")
+                    .append(candidate.offerBadge())
+                    .append('\n');
+
+            output.append("Disclosure text: ")
+                    .append(candidate.disclosureText())
+                    .append('\n');
+
+            output.append("Visual direction: ")
+                    .append(candidate.visualDirection())
                     .append('\n');
 
             appendList(

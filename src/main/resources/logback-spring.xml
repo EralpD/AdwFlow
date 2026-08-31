@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Spring Boot'un standart log biçimi ve console appender'ı -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!-- Log kayıtlarını OpenTelemetry Log SDK'ya gönderir -->
+    <appender
+        name="OTEL"
+        class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
+
+        <!-- Thread adı gibi ek alanlar -->
+        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+
+        <!-- Java sınıfı ve metot bilgisi; debugging için yararlı -->
+        <captureCodeAttributes>true</captureCodeAttributes>
+
+        <!-- traceId/spanId dahil MDC alanlarını attribute olarak al -->
+        <captureMdcAttributes>*</captureMdcAttributes>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="OTEL"/>
+    </root>
+
+</configuration>

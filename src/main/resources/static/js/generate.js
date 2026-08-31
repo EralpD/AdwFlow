@@ -23,6 +23,11 @@
     const attachments = document.getElementById("attachments");
     const generateButton = document.getElementById("generate-button");
     const generateButtonText = document.getElementById("generate-button-text");
+    const continueButton = document.getElementById("continue-button");
+    const backButton = document.getElementById("back-button");
+    const formSteps = Array.from(document.querySelectorAll(".form-step"));
+    const stepIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
+    const creativeToolbar = document.querySelector(".creative-toolbar");
     const aiStatusText = document.getElementById("ai-status-text");
     const formMessage = document.getElementById("form-message");
     const generationResult = document.getElementById("generation-result");
@@ -106,8 +111,8 @@
     const setSubmitting = (submitting) => {
         generateButton.disabled = submitting;
         generateButton.setAttribute("aria-busy", String(submitting));
-        generateButtonText.textContent = submitting ? "Generating…" : "Generate Ad";
-        aiStatusText.textContent = submitting ? "Agents are working" : "AI is ready";
+        generateButtonText.textContent = submitting ? "Üretiliyor…" : "Generate Ad";
+        aiStatusText.textContent = submitting ? "Ajanlar çalışıyor" : "AI hazır";
     };
 
     const appendTextElement = (parent, tagName, className, text) => {
@@ -158,13 +163,13 @@
     const getBrandLabel = (result) => {
         const product = result.strategy?.briefAnalysis?.productOrOffer;
         if (typeof product !== "string" || !product.trim()) {
-            return "Your brand";
+            return result.trustedContext?.product?.name || "Markanız";
         }
 
         return product
             .split(/[,:;|—–]/)[0]
             .trim()
-            .slice(0, 28) || "Your brand";
+            .slice(0, 28) || "Markanız";
     };
 
     const getVisualUrl = (visual) => {
@@ -411,6 +416,9 @@
         const postCopy = document.createElement("div");
         postCopy.className = "post-copy";
         appendTextElement(postCopy, "h3", "post-headline", candidate.headline);
+        if (candidate.supportingText) {
+            appendTextElement(postCopy, "p", "post-supporting", candidate.supportingText);
+        }
         appendTextElement(postCopy, "span", "post-cta", candidate.callToAction || "Learn more");
         visualScrim.append(postTop, postCopy);
         postFrame.append(image, placeholder, visualScrim);
@@ -451,6 +459,12 @@
         captionPanel.className = "caption-panel";
         appendTextElement(captionPanel, "p", "caption-label", "Instagram caption");
         appendTextElement(captionPanel, "p", "candidate-copy", candidate.primaryText);
+        if (candidate.offerBadge && candidate.offerBadge !== "NONE") {
+            appendTextElement(captionPanel, "p", "candidate-offer", `Teklif: ${candidate.offerBadge}`);
+        }
+        if (candidate.disclosureText && candidate.disclosureText !== "NONE") {
+            appendTextElement(captionPanel, "p", "candidate-disclosure", candidate.disclosureText);
+        }
         if (Array.isArray(candidate.hashtags) && candidate.hashtags.length > 0) {
             appendTextElement(captionPanel, "p", "candidate-hashtags", candidate.hashtags.join(" "));
         }
@@ -523,6 +537,9 @@
             ? "result-status is-pass"
             : "result-status is-warning";
 
+        const needsInput = result.status === "NEEDS_USER_INPUT";
+        creativeToolbar.hidden = needsInput;
+
         const candidateReviews = result.review?.candidateReviews ?? [];
         const reviewByCandidate = new Map(
             candidateReviews.map((review) => [review.candidateId, review])
@@ -550,11 +567,21 @@
             }
         });
 
-        resultSummary.textContent = [
-            `${candidates.length} saved variation(s).`,
-            `${result.revisionRounds ?? 0} revision round(s).`,
-            `Workflow ${result.workflowId}.`
-        ].join(" ");
+        if (needsInput) {
+            const missing = Array.isArray(result.missingInputs) ? result.missingInputs : [];
+            resultSummary.textContent = `Üretim durduruldu. Eksik veya doğrulanmamış alanlar: ${missing.join(", ") || "bilinmiyor"}. Workflow ${result.workflowId}.`;
+        } else {
+            const deltas = Array.isArray(result.revisionFindingDeltas) ? result.revisionFindingDeltas : [];
+            const resolved = deltas.flatMap((delta) => delta.resolvedFindingCodes || []);
+            const remaining = deltas.at(-1)?.remainingFindingCodes || [];
+            resultSummary.textContent = [
+                `${candidates.length} reklam alternatifi kaydedildi.`,
+                `${result.revisionRounds ?? 0} revizyon turu.`,
+                `Çözülen finding kodları: ${resolved.join(", ") || "yok"}.`,
+                `Kalan finding kodları: ${remaining.join(", ") || "yok"}.`,
+                `Workflow ${result.workflowId}.`
+            ].join(" ");
+        }
 
         generationResult.hidden = false;
         generationResult.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -601,6 +628,43 @@
         textarea.style.height = `${Math.min(textarea.scrollHeight, maximumHeight)}px`;
         textarea.style.overflowY = textarea.scrollHeight > maximumHeight ? "auto" : "hidden";
     };
+
+    const controlsInStep = (stepNumber) => Array.from(
+        document.querySelectorAll(`[data-step="${stepNumber}"] input, [data-step="${stepNumber}"] select, [data-step="${stepNumber}"] textarea`)
+    );
+
+    const showStep = (stepNumber) => {
+        formSteps.forEach((step) => {
+            const active = Number(step.dataset.step) === stepNumber;
+            step.hidden = !active;
+            step.classList.toggle("is-active", active);
+            controlsInStep(Number(step.dataset.step)).forEach((control) => {
+                control.disabled = !active;
+            });
+        });
+        stepIndicators.forEach((indicator) => {
+            indicator.classList.toggle("is-active", Number(indicator.dataset.stepIndicator) <= stepNumber);
+        });
+        setFormMessage("");
+        document.querySelector(`[data-step="${stepNumber}"] input, [data-step="${stepNumber}"] textarea`)?.focus();
+    };
+
+    const validateStep = (stepNumber) => {
+        const invalid = controlsInStep(stepNumber).find((control) => !control.checkValidity());
+        if (invalid) {
+            invalid.reportValidity();
+            invalid.focus();
+            return false;
+        }
+        return true;
+    };
+
+    continueButton.addEventListener("click", () => {
+        if (!validateStep(1)) return;
+        showStep(2);
+    });
+
+    backButton.addEventListener("click", () => showStep(1));
 
     textarea.addEventListener("input", () => {
         countAndLimitWords();
@@ -693,15 +757,11 @@
 
         const brief = textarea.value.trim();
 
-        if (!brief) {
-            setFormMessage("Describe the advertisement you want to create.", "error");
-            textarea.focus();
-            return;
-        }
+        if (!validateStep(2)) return;
 
         const hadImages = selectedImages.length > 0;
-        setFormMessage("Generating copy and three visuals, then saving your work. This can take a few minutes."
-            + (hadImages ? " Attached images are not sent to the model yet; only your text brief is used." : ""), "info");
+        setFormMessage("Metinler uygunluk kontrolünden geçiriliyor, üç görsel üretiliyor ve çalışma kaydediliyor. Bu işlem birkaç dakika sürebilir."
+            + (hadImages ? " Eklenen görseller henüz modele gönderilmez; yalnızca yapılandırılmış veriler kullanılır." : ""), "info");
         document.getElementById("saved-work-link").hidden = true;
 
         generationResult.hidden = true;
@@ -714,13 +774,49 @@
                 headers: securityHeaders(),
                 body: JSON.stringify({
                     brief,
-                    platform: "Instagram",
-                    brandName: "unspecified",
-                    brandVoice: "Calm, clear and encouraging",
-                    knownTargetAudience: "unspecified",
-                    language: "English",
-                    reviewLanguage: "English",
-                    requestedAngleCount: 3
+                    platform: document.getElementById("platform").value,
+                    brandName: document.getElementById("brand-name").value.trim(),
+                    brandVoice: document.getElementById("brand-voice").value.trim(),
+                    knownTargetAudience: document.getElementById("target-audience").value.trim(),
+                    language: document.getElementById("language").value,
+                    reviewLanguage: document.getElementById("language").value,
+                    requestedAngleCount: 3,
+                    campaign: {
+                        campaignName: document.getElementById("campaign-name").value.trim(),
+                        objective: document.getElementById("campaign-objective").value.trim(),
+                        startsOn: document.getElementById("campaign-start").value,
+                        endsOn: document.getElementById("campaign-end").value,
+                        offerDescription: document.getElementById("offer-description").value.trim(),
+                        currency: document.getElementById("currency").value,
+                        originalPrice: Number(document.getElementById("original-price").value),
+                        promotionalPrice: Number(document.getElementById("promotional-price").value),
+                        discountPercent: Number(document.getElementById("discount-percent").value),
+                        freeShippingRegions: document.getElementById("shipping-regions").value.split(",").map((value) => value.trim()).filter(Boolean),
+                        termsUrl: document.getElementById("terms-url").value.trim()
+                    },
+                    product: {
+                        productId: document.getElementById("product-id").value.trim(),
+                        name: document.getElementById("product-name").value.trim(),
+                        capacityMl: Number(document.getElementById("capacity-ml").value),
+                        features: document.getElementById("product-features").value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean),
+                        claims: {
+                            coldRetentionHours: {
+                                value: Number(document.getElementById("cold-value").value),
+                                verified: document.getElementById("cold-verified").checked,
+                                evidenceId: document.getElementById("cold-evidence").value.trim()
+                            },
+                            hotRetentionHours: {
+                                value: Number(document.getElementById("hot-value").value),
+                                verified: document.getElementById("hot-verified").checked,
+                                evidenceId: document.getElementById("hot-evidence").value.trim()
+                            },
+                            bpaFree: {
+                                value: document.getElementById("bpa-value").value === "true",
+                                verified: document.getElementById("bpa-verified").checked,
+                                evidenceId: document.getElementById("bpa-evidence").value.trim()
+                            }
+                        }
+                    }
                 })
             });
 
@@ -735,12 +831,13 @@
                 savedLink.href = `/dashboard/works/${result.workId}`;
                 savedLink.hidden = false;
             }
-            setFormMessage(
-                result.status === "PASS"
-                    ? "Saved to My Works with all three visuals."
-                    : "Saved to My Works with all three visuals. The revision limit was reached; inspect the remaining findings.",
-                result.status === "PASS" ? "success" : "error"
-            );
+            const messageByStatus = {
+                PASS: "Üç reklam ve görsel My Works alanına kaydedildi.",
+                NEEDS_USER_INPUT: "Eksik veya doğrulanmamış alanları tamamlayıp yeniden deneyin.",
+                REVISION_LIMIT_REACHED: "Çalışma kaydedildi; revizyon sınırından sonra kalan finding kodlarını inceleyin."
+            };
+            setFormMessage(messageByStatus[result.status] || "Üretim tamamlandı.",
+                result.status === "PASS" ? "success" : "error");
         } catch (error) {
             generationResult.hidden = true;
             setFormMessage(
@@ -755,4 +852,5 @@
 
     countAndLimitWords();
     resizeTextarea();
+    showStep(1);
 })();

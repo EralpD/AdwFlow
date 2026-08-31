@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.example.demo.agent.copywriter.CopywriterRequest;
 import com.example.demo.agent.copywriter.GenerateCopyRequest;
 import com.example.demo.agent.copywriter.ReviseCopyRequest;
+import com.example.demo.workflow.context.TrustedContextPromptFormatter;
 
 @Component
 public final class CopywriterPromptFactory {
@@ -24,6 +25,7 @@ public final class CopywriterPromptFactory {
     private final Resource revisionPromptResource;
     private final TemplateRenderer templateRenderer;
     private final CopywriterPromptFormatter formatter;
+    private final TrustedContextPromptFormatter trustedContextFormatter;
 
     public CopywriterPromptFactory(
             @Value("classpath:prompts/copywriter/system.st")
@@ -42,13 +44,15 @@ public final class CopywriterPromptFactory {
             Resource revisionPromptResource,
 
             TemplateRenderer templateRenderer,
-            CopywriterPromptFormatter formatter
+            CopywriterPromptFormatter formatter,
+            TrustedContextPromptFormatter trustedContextFormatter
     ) {
         this.systemPromptResource = systemPromptResource;
         this.generationPromptResource = generationPromptResource;
         this.revisionPromptResource = revisionPromptResource;
         this.templateRenderer = templateRenderer;
         this.formatter = formatter;
+        this.trustedContextFormatter = trustedContextFormatter;
     }
 
     public Message createSystemMessage() {
@@ -82,7 +86,9 @@ public final class CopywriterPromptFactory {
                 "expectedCandidateCount",
                 request.strategy().creativeAngles().size(),
                 "strategy",
-                formatter.formatStrategy(request.strategy())
+                formatter.formatStrategy(request.strategy()),
+                "trustedContext",
+                trustedContextFormatter.format(request.trustedContext())
         );
 
         return PromptTemplate.builder()
@@ -112,7 +118,9 @@ public final class CopywriterPromptFactory {
                 "revisionInstructions",
                 formatter.formatRevisionInstructions(
                         request.revisionInstructions()
-                )
+                ),
+                "trustedContext",
+                trustedContextFormatter.format(request.trustedContext())
         );
 
         return PromptTemplate.builder()

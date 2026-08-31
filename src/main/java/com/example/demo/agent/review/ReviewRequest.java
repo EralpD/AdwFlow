@@ -7,12 +7,14 @@ import java.util.Objects;
 
 import com.example.demo.agent.copywriter.AdCandidate;
 import com.example.demo.agent.strategy.StrategyResult;
+import com.example.demo.workflow.context.TrustedGenerationContext;
 
 public record ReviewRequest(
         StrategyResult strategy,
         List<AdCandidate> candidates,
         String platform,
-        String reviewLanguage
+        String reviewLanguage,
+        TrustedGenerationContext trustedContext
 ) {
 
     public ReviewRequest {
@@ -38,7 +40,11 @@ public record ReviewRequest(
 
         reviewLanguage = defaultIfBlank(
                 reviewLanguage,
-                "English"
+                "Turkish"
+        );
+        trustedContext = Objects.requireNonNull(
+                trustedContext,
+                "trustedContext must not be null"
         );
     }
 
@@ -50,4 +56,4 @@ public record ReviewRequest(
                 ? defaultValue
                 : value.trim();
     }
-}   
+}

@@ -26,3 +26,8 @@ Follow these rules:
 
 The claimsUsed field must list factual or measurable claims present
 in the candidate. Return an empty list when no such claim exists.
+
+Every candidate must include the required visual-copy fields:
+supportingText, offerBadge, disclosureText and visualDirection.
+Use NONE for offerBadge or disclosureText only when the verified
+campaign terms show that the field is not applicable.

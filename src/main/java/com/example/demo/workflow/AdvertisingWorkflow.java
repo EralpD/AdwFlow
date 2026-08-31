@@ -1,33 +1,16 @@
 package com.example.demo.workflow;
 
-import com.example.demo.agent.copywriter.AdCandidate;
-import com.example.demo.agent.copywriter.CopywriterAgent;
-import com.example.demo.agent.copywriter.CopywriterResult;
-import com.example.demo.agent.copywriter.GenerateCopyRequest;
-import com.example.demo.agent.copywriter.RevisionInstruction;
-import com.example.demo.agent.copywriter.ReviseCopyRequest;
-import com.example.demo.agent.core.AgentContext;
-import com.example.demo.agent.core.AgentExecution;
-import com.example.demo.agent.core.AgentExecutionPolicy;
-import com.example.demo.agent.core.AgentExecutor;
-import com.example.demo.agent.review.ComplianceAgent;
-import com.example.demo.agent.review.ReviewRequest;
-import com.example.demo.agent.review.ReviewResult;
-import com.example.demo.agent.review.decision.ReviewDecision;
-import com.example.demo.agent.review.decision.ReviewDecisionResult;
-import com.example.demo.agent.review.decision.ReviewDecisionService;
-import com.example.demo.agent.strategy.CreativeStrategistAgent;
-import com.example.demo.agent.strategy.StrategyRequest;
-import com.example.demo.agent.strategy.StrategyResult;
-import com.example.demo.validation.DeterministicValidationResult;
-import com.example.demo.validation.DeterministicValidationService;
+import com.example.demo.agent.copywriter.*;
+import com.example.demo.agent.core.*;
+import com.example.demo.agent.review.*;
+import com.example.demo.agent.review.decision.*;
+import com.example.demo.agent.strategy.*;
+import com.example.demo.validation.*;
+import com.example.demo.workflow.context.*;
+import com.example.demo.workflow.routing.*;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public final class AdvertisingWorkflow {
@@ -40,6 +23,9 @@ public final class AdvertisingWorkflow {
     private final AgentExecutor agentExecutor;
     private final ReviewDecisionService reviewDecisionService;
     private final DeterministicValidationService validationService;
+    private final ProductCatalogTool productCatalogTool;
+    private final CampaignTermsTool campaignTermsTool;
+    private final ComplianceFindingRouter findingRouter;
 
     public AdvertisingWorkflow(
             CreativeStrategistAgent strategistAgent,
@@ -47,7 +33,10 @@ public final class AdvertisingWorkflow {
             ComplianceAgent complianceAgent,
             AgentExecutor agentExecutor,
             ReviewDecisionService reviewDecisionService,
-            DeterministicValidationService validationService
+            DeterministicValidationService validationService,
+            ProductCatalogTool productCatalogTool,
+            CampaignTermsTool campaignTermsTool,
+            ComplianceFindingRouter findingRouter
     ) {
         this.strategistAgent = strategistAgent;
         this.copywriterAgent = copywriterAgent;
@@ -55,481 +44,206 @@ public final class AdvertisingWorkflow {
         this.agentExecutor = agentExecutor;
         this.reviewDecisionService = reviewDecisionService;
         this.validationService = validationService;
+        this.productCatalogTool = productCatalogTool;
+        this.campaignTermsTool = campaignTermsTool;
+        this.findingRouter = findingRouter;
     }
 
-    public AdvertisingGenerationResult generateAdvertisement(
-            AdvertisingGenerationCommand command
-    ) {
-        Objects.requireNonNull(
-                command,
-                "command must not be null"
-        );
+    public AdvertisingGenerationResult generateAdvertisement(AdvertisingGenerationCommand command) {
+        Objects.requireNonNull(command, "command must not be null");
 
         String workflowId = UUID.randomUUID().toString();
         String generationId = UUID.randomUUID().toString();
+        AgentContext context = AgentContext.initial(workflowId, generationId);
 
-        AgentContext context = AgentContext.initial(
-                workflowId,
-                generationId
-        );
+        TrustedToolResult<ProductCatalogData> product = productCatalogTool.resolve(command.product());
+        TrustedToolResult<CampaignTermsData> campaign = campaignTermsTool.resolve(command.campaign());
+        List<String> missingInputs = new ArrayList<>();
+        missingInputs.addAll(product.missingInputs());
+        missingInputs.addAll(campaign.missingInputs());
+        missingInputs = missingInputs.stream().distinct().toList();
+
+        if (!missingInputs.isEmpty()) {
+            return result(workflowId, generationId, GenerationStatus.NEEDS_USER_INPUT, 0,
+                    null, List.of(), null, null, null, null, missingInputs, List.of());
+        }
+
+        List<String> evidenceIds = new ArrayList<>(product.verifiedEvidenceIds());
+        evidenceIds.addAll(campaign.verifiedEvidenceIds());
+        TrustedGenerationContext trustedContext = new TrustedGenerationContext(
+                product.data(), campaign.data(), evidenceIds.stream().distinct().toList());
 
         StrategyResult strategy = createStrategy(
-                command.toStrategyRequest(),
-                context.withAttribute("stage", "strategy")
-        );
-
-        CopywriterResult initialCopy = createCandidates(
-                strategy,
-                command.platform(),
-                command.language(),
-                context.withAttribute("stage", "copywriter")
-        );
-
-        List<AdCandidate> candidates =
-                initialCopy.candidates();
+                command.toStrategyRequest(trustedContext),
+                context.withAttribute("stage", "strategy"));
+        List<AdCandidate> candidates = createCandidates(
+                strategy, command.platform(), command.language(), trustedContext,
+                context.withAttribute("stage", "copywriter")).candidates();
 
         int revisionRounds = 0;
-        ReviewResult reviewResult = null;
-        ReviewDecisionResult decisionResult = null;
+        List<RevisionFindingDelta> findingDeltas = new ArrayList<>();
+        List<String> pendingFindingCodes = null;
+        String pendingRoute = null;
+        int pendingRound = 0;
 
         while (true) {
-            DeterministicValidationResult validation =
-                    validationService.validate(
-                            candidates,
-                            command.platform()
-                    );
-
+            DeterministicValidationResult validation = validationService.validate(candidates, command.platform());
             if (!validation.allValid()) {
                 if (revisionRounds >= MAX_REVISION_ROUNDS) {
-                    return result(
-                            workflowId,
-                            generationId,
-                            GenerationStatus.REVISION_LIMIT_REACHED,
-                            revisionRounds,
-                            strategy,
-                            candidates,
-                            validation,
-                            null,
-                            null
-                    );
+                    return result(workflowId, generationId, GenerationStatus.REVISION_LIMIT_REACHED,
+                            revisionRounds, strategy, candidates, validation, null, null,
+                            trustedContext, List.of(), findingDeltas);
                 }
-
-                List<AdCandidate> invalidCandidates =
-                        validationService.invalidCandidates(
-                                candidates,
-                                validation
-                        );
-
+                List<AdCandidate> invalid = validationService.invalidCandidates(candidates, validation);
                 CopywriterResult revised = reviseCandidates(
-                        strategy,
-                        command.platform(),
-                        command.language(),
-                        invalidCandidates,
-                        validationService.revisionInstructions(
-                                validation
-                        ),
-                        context.withAttribute(
-                                "stage",
-                                "deterministic-revision"
-                        )
-                );
-
-                candidates = mergeCandidates(
-                        candidates,
-                        revised.candidates()
-                );
-
+                        strategy, command.platform(), command.language(), invalid,
+                        validationService.revisionInstructions(validation), trustedContext,
+                        context.withAttribute("stage", "deterministic-revision"));
+                candidates = mergeCandidates(candidates, revised.candidates());
                 revisionRounds++;
-                reviewResult = null;
-                decisionResult = null;
                 continue;
             }
 
-            reviewResult = reviewCandidates(
-                    strategy,
-                    candidates,
-                    command.platform(),
-                    command.reviewLanguage(),
-                    context.withAttribute("stage", "compliance")
-            );
+            ReviewResult review = reviewCandidates(strategy, candidates, command.platform(),
+                    command.reviewLanguage(), trustedContext,
+                    context.withAttribute("stage", "compliance"));
+            List<String> currentFindingCodes = findingCodes(review);
+            if (pendingFindingCodes != null) {
+                findingDeltas.add(RevisionFindingDelta.compare(
+                        pendingRound, pendingRoute, pendingFindingCodes, currentFindingCodes));
+                pendingFindingCodes = null;
+            }
 
-            decisionResult = decide(
-                    candidates,
-                    reviewResult
-            );
+            ReviewDecisionResult decision = decide(candidates, review);
+            if (decision.decision() == ReviewDecision.PASS) {
+                return result(workflowId, generationId, GenerationStatus.PASS, revisionRounds,
+                        strategy, candidates, validation, review, decision,
+                        trustedContext, List.of(), findingDeltas);
+            }
 
-            if (decisionResult.decision()
-                    == ReviewDecision.PASS) {
-                return result(
-                        workflowId,
-                        generationId,
-                        GenerationStatus.PASS,
-                        revisionRounds,
-                        strategy,
-                        candidates,
-                        validation,
-                        reviewResult,
-                        decisionResult
-                );
+            FindingRoutingResult routing = findingRouter.route(review);
+            if (routing.route() == FindingRoute.USER_INPUT) {
+                return result(workflowId, generationId, GenerationStatus.NEEDS_USER_INPUT,
+                        revisionRounds, strategy, candidates, validation, review, decision,
+                        trustedContext, routing.missingInputs(), findingDeltas);
             }
 
             if (revisionRounds >= MAX_REVISION_ROUNDS) {
-                return result(
-                        workflowId,
-                        generationId,
-                        GenerationStatus.REVISION_LIMIT_REACHED,
-                        revisionRounds,
-                        strategy,
-                        candidates,
-                        validation,
-                        reviewResult,
-                        decisionResult
-                );
+                return result(workflowId, generationId, GenerationStatus.REVISION_LIMIT_REACHED,
+                        revisionRounds, strategy, candidates, validation, review, decision,
+                        trustedContext, List.of(), findingDeltas);
             }
 
-            CopywriterResult revised = reviseCandidates(
-                    strategy,
-                    command.platform(),
-                    command.language(),
-                    decisionResult,
-                    context.withAttribute(
-                            "stage",
-                            "compliance-revision"
-                    )
-            );
+            pendingFindingCodes = currentFindingCodes;
+            pendingRoute = routing.route().name();
+            pendingRound = revisionRounds + 1;
 
-            candidates = mergeCandidates(
-                    candidates,
-                    revised.candidates()
-            );
-
+            if (routing.route() == FindingRoute.STRATEGIST) {
+                strategy = createStrategy(
+                        command.toStrategyRequest(trustedContext, routing.strategyGuidance()),
+                        context.withAttribute("stage", "strategy-revision"));
+                candidates = createCandidates(strategy, command.platform(), command.language(),
+                        trustedContext, context.withAttribute("stage", "copywriter-after-strategy-revision"))
+                        .candidates();
+            } else {
+                CopywriterResult revised = reviseCandidates(
+                        strategy, command.platform(), command.language(), decision.candidatesToRevise(),
+                        decision.revisionInstructions(), trustedContext,
+                        context.withAttribute("stage", "compliance-revision"));
+                candidates = mergeCandidates(candidates, revised.candidates());
+            }
             revisionRounds++;
         }
     }
 
-    /*
-     * STAGE 1
-     *
-     * Converts the user brief into:
-     * - brief analysis,
-     * - creative angles,
-     * - persuasion directions.
-     */
-
-    public StrategyResult createStrategy(
-            StrategyRequest request,
-            AgentContext context
-    ) {
-        Objects.requireNonNull(
-                request,
-                "request must not be null"
-        );
-
-        Objects.requireNonNull(
-                context,
-                "context must not be null"
-        );
-
-        AgentExecution<StrategyResult> execution =
-                agentExecutor.execute(
-                        strategistAgent,
-                        request,
-                        context,
-                        AgentExecutionPolicy.noRetry()
-                );
-
-        return execution.output();
+    public StrategyResult createStrategy(StrategyRequest request, AgentContext context) {
+        Objects.requireNonNull(request, "request must not be null");
+        Objects.requireNonNull(context, "context must not be null");
+        return agentExecutor.execute(strategistAgent, request, context,
+                AgentExecutionPolicy.noRetry()).output();
     }
 
-    /*
-     * STAGE 2
-     *
-     * Creates one advertising candidate for every
-     * creative angle produced by the Strategy Agent.
-     */
-
-    public CopywriterResult createCandidates(
-            StrategyResult strategy,
-            String platform,
-            String language,
-            AgentContext context
-    ) {
-        Objects.requireNonNull(
-                strategy,
-                "strategy must not be null"
-        );
-
-        Objects.requireNonNull(
-                context,
-                "context must not be null"
-        );
-
-        GenerateCopyRequest request =
-                new GenerateCopyRequest(
-                        strategy,
-                        platform,
-                        language
-                );
-
-        AgentExecution<CopywriterResult> execution =
-                agentExecutor.execute(
-                        copywriterAgent,
-                        request,
-                        context,
-                        AgentExecutionPolicy.noRetry()
-                );
-
-        return execution.output();
+    public CopywriterResult createCandidates(StrategyResult strategy, String platform,
+            String language, TrustedGenerationContext trustedContext, AgentContext context) {
+        Objects.requireNonNull(strategy, "strategy must not be null");
+        Objects.requireNonNull(context, "context must not be null");
+        GenerateCopyRequest request = new GenerateCopyRequest(
+                strategy, platform, language, trustedContext);
+        return agentExecutor.execute(copywriterAgent, request, context,
+                AgentExecutionPolicy.noRetry()).output();
     }
 
-    /*
-     * STAGE 3
-     *
-     * Reviews only the candidates that passed the
-     * deterministic validation stage.
-     *
-     * Length, forbidden-term and platform validators
-     * must run before this method.
-     */
-
-    public ReviewResult reviewCandidates(
-            StrategyResult strategy,
-            List<AdCandidate> validCandidates,
-            String platform,
-            String reviewLanguage,
-            AgentContext context
-    ) {
-        Objects.requireNonNull(
-                strategy,
-                "strategy must not be null"
-        );
-
-        Objects.requireNonNull(
-                validCandidates,
-                "validCandidates must not be null"
-        );
-
-        Objects.requireNonNull(
-                context,
-                "context must not be null"
-        );
-
-        ReviewRequest request =
-                new ReviewRequest(
-                        strategy,
-                        validCandidates,
-                        platform,
-                        reviewLanguage
-                );
-
-        AgentExecution<ReviewResult> execution =
-                agentExecutor.execute(
-                        complianceAgent,
-                        request,
-                        context,
-                        AgentExecutionPolicy.noRetry()
-                );
-
-        return execution.output();
+    public ReviewResult reviewCandidates(StrategyResult strategy, List<AdCandidate> candidates,
+            String platform, String reviewLanguage, TrustedGenerationContext trustedContext,
+            AgentContext context) {
+        Objects.requireNonNull(strategy, "strategy must not be null");
+        Objects.requireNonNull(candidates, "candidates must not be null");
+        Objects.requireNonNull(context, "context must not be null");
+        ReviewRequest request = new ReviewRequest(
+                strategy, candidates, platform, reviewLanguage, trustedContext);
+        return agentExecutor.execute(complianceAgent, request, context,
+                AgentExecutionPolicy.noRetry()).output();
     }
 
-    /*
-     * DETERMINISTIC DECISION
-     *
-     * This is not an agent call.
-     *
-     * WARNING only       -> PASS
-     * ERROR or CRITICAL  -> REVISION
-     */
-
-    public ReviewDecisionResult decide(
-            List<AdCandidate> validCandidates,
-            ReviewResult reviewResult
-    ) {
-        Objects.requireNonNull(
-                validCandidates,
-                "validCandidates must not be null"
-        );
-
-        Objects.requireNonNull(
-                reviewResult,
-                "reviewResult must not be null"
-        );
-
+    public ReviewDecisionResult decide(List<AdCandidate> candidates, ReviewResult review) {
         return reviewDecisionService.decide(
-                validCandidates,
-                reviewResult
-        );
+                Objects.requireNonNull(candidates, "candidates must not be null"),
+                Objects.requireNonNull(review, "review must not be null"));
     }
 
-    /*
-     * REVISION STAGE
-     *
-     * Runs the same Copywriter Agent again.
-     * This does not create a fourth agent.
-     *
-     * Only candidates marked for revision are supplied
-     * to the Copywriter.
-     */
-
-    public CopywriterResult reviseCandidates(
-            StrategyResult strategy,
-            String platform,
-            String language,
-            ReviewDecisionResult decisionResult,
-            AgentContext context
-    ) {
-        Objects.requireNonNull(
-                strategy,
-                "strategy must not be null"
-        );
-
-        Objects.requireNonNull(
-                decisionResult,
-                "decisionResult must not be null"
-        );
-
-        Objects.requireNonNull(
-                context,
-                "context must not be null"
-        );
-
-        if (decisionResult.decision()
-                != ReviewDecision.REVISION) {
-            throw new IllegalArgumentException(
-                    "Candidates can only be revised when the "
-                            + "review decision is REVISION"
-            );
-        }
-
-        if (decisionResult.candidatesToRevise().isEmpty()) {
-            throw new IllegalArgumentException(
-                    "A REVISION decision must contain at least "
-                            + "one candidate to revise"
-            );
-        }
-
-        return reviseCandidates(
-                strategy,
-                platform,
-                language,
-                decisionResult.candidatesToRevise(),
-                decisionResult.revisionInstructions(),
-                context
-        );
+    public CopywriterResult reviseCandidates(StrategyResult strategy, String platform,
+            String language, List<AdCandidate> candidatesToRevise,
+            List<RevisionInstruction> instructions, TrustedGenerationContext trustedContext,
+            AgentContext context) {
+        ReviseCopyRequest request = new ReviseCopyRequest(
+                Objects.requireNonNull(strategy, "strategy must not be null"),
+                platform, language,
+                Objects.requireNonNull(candidatesToRevise, "candidatesToRevise must not be null"),
+                Objects.requireNonNull(instructions, "instructions must not be null"),
+                trustedContext);
+        return agentExecutor.execute(copywriterAgent, request,
+                Objects.requireNonNull(context, "context must not be null"),
+                AgentExecutionPolicy.noRetry()).output();
     }
 
-    public CopywriterResult reviseCandidates(
-            StrategyResult strategy,
-            String platform,
-            String language,
-            List<AdCandidate> candidatesToRevise,
-            List<RevisionInstruction> revisionInstructions,
-            AgentContext context
-    ) {
-        Objects.requireNonNull(
-                strategy,
-                "strategy must not be null"
-        );
-
-        Objects.requireNonNull(
-                candidatesToRevise,
-                "candidatesToRevise must not be null"
-        );
-
-        Objects.requireNonNull(
-                revisionInstructions,
-                "revisionInstructions must not be null"
-        );
-
-        Objects.requireNonNull(
-                context,
-                "context must not be null"
-        );
-
-        ReviseCopyRequest request =
-                new ReviseCopyRequest(
-                        strategy,
-                        platform,
-                        language,
-                        candidatesToRevise,
-                        revisionInstructions
-                );
-
-        AgentExecution<CopywriterResult> execution =
-                agentExecutor.execute(
-                        copywriterAgent,
-                        request,
-                        context,
-                        AgentExecutionPolicy.noRetry()
-                );
-
-        return execution.output();
+    private List<String> findingCodes(ReviewResult review) {
+        return review.candidateReviews().stream()
+                .flatMap(candidate -> candidate.findings().stream())
+                .map(ComplianceFinding::code)
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(code -> !code.isEmpty())
+                .distinct()
+                .sorted()
+                .toList();
     }
 
-    private List<AdCandidate> mergeCandidates(
-            List<AdCandidate> currentCandidates,
-            List<AdCandidate> revisedCandidates
-    ) {
-        Map<String, AdCandidate> revisedById =
-                new HashMap<>();
-
-        for (AdCandidate revised : revisedCandidates) {
-            AdCandidate previous = revisedById.put(
-                    revised.candidateId(),
-                    revised
-            );
-
-            if (previous != null) {
-                throw new IllegalStateException(
-                        "Duplicate revised candidate ID: "
-                                + revised.candidateId()
-                );
+    private List<AdCandidate> mergeCandidates(List<AdCandidate> current, List<AdCandidate> revised) {
+        Map<String, AdCandidate> revisedById = new HashMap<>();
+        for (AdCandidate candidate : revised) {
+            if (revisedById.put(candidate.candidateId(), candidate) != null) {
+                throw new IllegalStateException("Duplicate revised candidate ID: " + candidate.candidateId());
             }
         }
-
-        List<AdCandidate> merged = currentCandidates.stream()
-                .map(candidate -> revisedById.getOrDefault(
-                        candidate.candidateId(),
-                        candidate
-                ))
+        List<AdCandidate> merged = current.stream()
+                .map(candidate -> revisedById.getOrDefault(candidate.candidateId(), candidate))
                 .toList();
-
-        long matchedRevisionCount = currentCandidates.stream()
-                .map(AdCandidate::candidateId)
-                .filter(revisedById::containsKey)
-                .count();
-
-        if (matchedRevisionCount != revisedById.size()) {
-            throw new IllegalStateException(
-                    "Revision returned an unknown candidate ID"
-            );
+        long matched = current.stream().map(AdCandidate::candidateId).filter(revisedById::containsKey).count();
+        if (matched != revisedById.size()) {
+            throw new IllegalStateException("Revision returned an unknown candidate ID");
         }
-
         return merged;
     }
 
     private AdvertisingGenerationResult result(
-            String workflowId,
-            String generationId,
-            GenerationStatus status,
-            int revisionRounds,
-            StrategyResult strategy,
-            List<AdCandidate> candidates,
-            DeterministicValidationResult validation,
-            ReviewResult review,
-            ReviewDecisionResult decision
+            String workflowId, String generationId, GenerationStatus status, int revisionRounds,
+            StrategyResult strategy, List<AdCandidate> candidates,
+            DeterministicValidationResult validation, ReviewResult review,
+            ReviewDecisionResult decision, TrustedGenerationContext trustedContext,
+            List<String> missingInputs, List<RevisionFindingDelta> findingDeltas
     ) {
         return new AdvertisingGenerationResult(
-                workflowId,
-                generationId,
-                status,
-                revisionRounds,
-                strategy,
-                candidates,
-                validation,
-                review,
-                decision
-        );
+                workflowId, generationId, status, revisionRounds, strategy, candidates,
+                validation, review, decision, trustedContext, missingInputs, findingDeltas);
     }
 }

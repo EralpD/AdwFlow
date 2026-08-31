@@ -15,6 +15,18 @@ BRAND VOICE:
 KNOWN TARGET AUDIENCE:
 <knownTargetAudience>
 
+OUTPUT LANGUAGE:
+<language>
+
+--- TRUSTED PRODUCT AND CAMPAIGN DATA START ---
+
+<trustedContext>
+
+--- TRUSTED PRODUCT AND CAMPAIGN DATA END ---
+
+REVISION GUIDANCE:
+- <revisionGuidance>
+
 REQUESTED CREATIVE ANGLE COUNT:
 <requestedAngleCount>
 
@@ -41,3 +53,6 @@ Requirements:
 - prohibitedTactics must list unsafe or misleading persuasion
   methods that should not be used.
 - Do not produce final advertisement copy.
+- Write all human-readable strategy fields in <language>.
+- Treat trusted product and campaign data as the only factual source.
+- Apply every item in revision guidance while preserving valid strategic distinctions.

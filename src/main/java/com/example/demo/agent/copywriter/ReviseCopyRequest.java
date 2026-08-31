@@ -8,13 +8,15 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.example.demo.agent.strategy.StrategyResult;
+import com.example.demo.workflow.context.TrustedGenerationContext;
 
 public record ReviseCopyRequest(
         StrategyResult strategy,
         String platform,
         String language,
         List<AdCandidate> candidatesToRevise,
-        List<RevisionInstruction> revisionInstructions
+        List<RevisionInstruction> revisionInstructions,
+        TrustedGenerationContext trustedContext
 ) implements CopywriterRequest {
 
     public ReviseCopyRequest {
@@ -24,7 +26,11 @@ public record ReviseCopyRequest(
         );
 
         platform = defaultIfBlank(platform, "unspecified");
-        language = defaultIfBlank(language, "English");
+        language = defaultIfBlank(language, "Turkish");
+        trustedContext = Objects.requireNonNull(
+                trustedContext,
+                "trustedContext must not be null"
+        );
 
         candidatesToRevise = immutableList(candidatesToRevise);
         revisionInstructions =

@@ -1,6 +1,8 @@
 package com.example.demo.generate.api;
 
 import com.example.demo.workflow.AdvertisingGenerationCommand;
+import com.example.demo.workflow.context.CampaignTermsData;
+import com.example.demo.workflow.context.ProductCatalogData;
 
 public record GenerateAdvertisementRequest(
         String brief,
@@ -10,7 +12,9 @@ public record GenerateAdvertisementRequest(
         String knownTargetAudience,
         String language,
         String reviewLanguage,
-        Integer requestedAngleCount
+        Integer requestedAngleCount,
+        CampaignTermsData campaign,
+        ProductCatalogData product
 ) {
 
     public AdvertisingGenerationCommand toCommand() {
@@ -24,7 +28,9 @@ public record GenerateAdvertisementRequest(
                 reviewLanguage,
                 requestedAngleCount == null
                         ? 0
-                        : requestedAngleCount
+                        : requestedAngleCount,
+                campaign,
+                product
         );
     }
 }

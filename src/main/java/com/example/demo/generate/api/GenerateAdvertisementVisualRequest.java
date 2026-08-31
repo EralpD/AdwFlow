@@ -12,8 +12,12 @@ public record GenerateAdvertisementVisualRequest(
     String sourceAngleId,
     String brandName,
     String headline,
+    String supportingText,
     String primaryText,
     String callToAction,
+    String offerBadge,
+    String disclosureText,
+    String visualDirection,
     List<String> hashtags,
     Format format
 ) {
@@ -28,8 +32,12 @@ public record GenerateAdvertisementVisualRequest(
             sourceAngleId,
             brandName,
             headline,
+            supportingText,
             primaryText,
             callToAction,
+            offerBadge,
+            disclosureText,
+            visualDirection,
             hashtags,
             VisualFormat.fromClientName(format.name())
         );

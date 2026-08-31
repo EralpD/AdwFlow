@@ -10,8 +10,12 @@ public record VisualGenerationRequest(
     String sourceAngleId,
     String brandName,
     String headline,
+    String supportingText,
     String primaryText,
     String callToAction,
+    String offerBadge,
+    String disclosureText,
+    String visualDirection,
     List<String> hashtags,
     VisualFormat format
 ) {
@@ -21,8 +25,12 @@ public record VisualGenerationRequest(
         sourceAngleId = requireText(sourceAngleId, "sourceAngleId");
         brandName = requireText(brandName, "brandName");
         headline = requireText(headline, "headline");
+        supportingText = requireText(supportingText, "supportingText");
         primaryText = requireText(primaryText, "primaryText");
         callToAction = requireText(callToAction, "callToAction");
+        offerBadge = requireText(offerBadge, "offerBadge");
+        disclosureText = requireText(disclosureText, "disclosureText");
+        visualDirection = requireText(visualDirection, "visualDirection");
 
         hashtags = hashtags == null ? List.of() : List.copyOf(hashtags);
         format = Objects.requireNonNull(format, "format is required");

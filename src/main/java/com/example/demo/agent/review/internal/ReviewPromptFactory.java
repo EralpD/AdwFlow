@@ -18,6 +18,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.agent.review.ReviewRequest;
+import com.example.demo.workflow.context.TrustedContextPromptFormatter;
 
 @Component
 public final class ReviewPromptFactory {
@@ -26,6 +27,7 @@ public final class ReviewPromptFactory {
     private final Resource reviewPromptResource;
     private final TemplateRenderer templateRenderer;
     private final ReviewPromptFormatter formatter;
+    private final TrustedContextPromptFormatter trustedContextFormatter;
 
     public ReviewPromptFactory(
             @Value("classpath:prompts/review/system.st")
@@ -38,12 +40,14 @@ public final class ReviewPromptFactory {
             Resource reviewPromptResource,
 
             TemplateRenderer templateRenderer,
-            ReviewPromptFormatter formatter
+            ReviewPromptFormatter formatter,
+            TrustedContextPromptFormatter trustedContextFormatter
     ) {
         this.systemPromptResource = systemPromptResource;
         this.reviewPromptResource = reviewPromptResource;
         this.templateRenderer = templateRenderer;
         this.formatter = formatter;
+        this.trustedContextFormatter = trustedContextFormatter;
     }
 
     public Message createSystemMessage() {
@@ -67,7 +71,9 @@ public final class ReviewPromptFactory {
                 "candidates",
                 formatter.formatCandidates(
                         request.candidates()
-                )
+                ),
+                "trustedContext",
+                trustedContextFormatter.format(request.trustedContext())
         );
 
         return PromptTemplate.builder()

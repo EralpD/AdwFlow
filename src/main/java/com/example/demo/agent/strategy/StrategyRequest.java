@@ -1,5 +1,9 @@
 package com.example.demo.agent.strategy;
 
+import com.example.demo.workflow.context.TrustedGenerationContext;
+
+import java.util.List;
+
 // The class which enters to Brief&Strategy Agent
 
 public record StrategyRequest(
@@ -8,7 +12,10 @@ public record StrategyRequest(
         String brandName,
         String brandVoice,
         String knownTargetAudience,
-        int requestedAngleCount
+        String language,
+        int requestedAngleCount,
+        TrustedGenerationContext trustedContext,
+        List<String> revisionGuidance
 ) {
 
     private static final int DEFAULT_ANGLE_COUNT = 3;
@@ -21,6 +28,10 @@ public record StrategyRequest(
         brandVoice = defaultIfBlank(brandVoice, "unspecified");
         knownTargetAudience =
                 defaultIfBlank(knownTargetAudience, "unspecified");
+        language = defaultIfBlank(language, "Turkish");
+        revisionGuidance = revisionGuidance == null
+                ? List.of()
+                : List.copyOf(revisionGuidance);
 
         if (requestedAngleCount == 0) {
             requestedAngleCount = DEFAULT_ANGLE_COUNT;
@@ -41,7 +52,10 @@ public record StrategyRequest(
                 "unspecified",
                 "unspecified",
                 "unspecified",
+                "Turkish",
                 DEFAULT_ANGLE_COUNT
+                , null,
+                List.of()
         );
     }
 

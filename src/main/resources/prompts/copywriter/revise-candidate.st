@@ -15,6 +15,12 @@ EXPECTED REVISED CANDIDATE COUNT:
 
 --- ORIGINAL STRATEGY END ---
 
+--- TRUSTED PRODUCT AND CAMPAIGN DATA START ---
+
+<trustedContext>
+
+--- TRUSTED PRODUCT AND CAMPAIGN DATA END ---
+
 --- CANDIDATES TO REVISE START ---
 
 <candidates>
@@ -39,3 +45,5 @@ Requirements:
 - Do not introduce new factual or measurable claims while fixing
   another issue.
 - Recalculate claimsUsed according to the revised text.
+- Preserve and, when required, revise supportingText, offerBadge, disclosureText and visualDirection.
+- Use only facts present in the trusted data block.

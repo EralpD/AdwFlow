@@ -27,10 +27,15 @@ public final class AdvertisementVisualPromptFactory {
             Campaign headline: %s
             Campaign message: %s
             Call-to-action intent: %s
+            Supporting overlay text: %s
+            Offer badge text: %s
+            Required disclosure: %s
             Campaign themes: %s
 
             CREATIVE DIRECTION
             Translate the campaign message into one clear visual story.
+
+            Candidate-specific art direction: %s
 
             Show a calm and premium morning environment. The main subject should
             feel naturally integrated into the scene and should immediately be
@@ -137,7 +142,11 @@ public final class AdvertisementVisualPromptFactory {
                 request.headline(),
                 request.primaryText(),
                 request.callToAction(),
+                request.supportingText(),
+                request.offerBadge(),
+                request.disclosureText(),
                 hashtags,
+                request.visualDirection(),
                 request.format().compositionInstruction()
             );
     }

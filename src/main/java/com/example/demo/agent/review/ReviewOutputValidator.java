@@ -248,8 +248,12 @@ public final class ReviewOutputValidator {
         String completeCandidateText = String.join(
                 " ",
                 candidate.headline(),
+                candidate.supportingText(),
                 candidate.primaryText(),
                 candidate.callToAction(),
+                candidate.offerBadge(),
+                candidate.disclosureText(),
+                candidate.visualDirection(),
                 String.join(" ", candidate.hashtags()),
                 String.join(" ", candidate.claimsUsed())
         );
