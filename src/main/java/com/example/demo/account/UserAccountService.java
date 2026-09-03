@@ -18,13 +18,13 @@ public class UserAccountService {
     }
 
     @Transactional
-    public void register(RegistrationForm form) {
+    public UserAccount register(RegistrationForm form) {
         validate(form);
         if (accounts.existsByEmail(form.getEmail())) {
             throw new DuplicateEmailException();
         }
         // The database unique constraint is the final arbiter for concurrent registrations.
-        accounts.saveAndFlush(new UserAccount(form.getDisplayName(), form.getEmail(),
+        return accounts.saveAndFlush(new UserAccount(form.getDisplayName(), form.getEmail(),
                 passwords.encode(form.getPassword()), Role.USER));
     }
 
@@ -44,8 +44,9 @@ public class UserAccountService {
             }
             return; // An existing admin's name, role and password remain untouched.
         }
-        accounts.saveAndFlush(new UserAccount(form.getDisplayName(), form.getEmail(),
-                passwords.encode(password), Role.ADMIN));
+        var admin = new UserAccount(form.getDisplayName(), form.getEmail(), passwords.encode(password), Role.ADMIN);
+        admin.markEmailVerifiedForBootstrap();
+        accounts.saveAndFlush(admin);
     }
 
     private void validate(RegistrationForm form) {

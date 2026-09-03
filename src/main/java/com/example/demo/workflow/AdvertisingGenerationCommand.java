@@ -26,13 +26,13 @@ public record AdvertisingGenerationCommand(
         brandName = defaultIfBlank(brandName, "unspecified");
         brandVoice = defaultIfBlank(
                 brandVoice,
-                "Sakin, net ve motive edici"
+                "Calm, clear, and motivating"
         );
         knownTargetAudience = defaultIfBlank(
                 knownTargetAudience,
                 "unspecified"
         );
-        language = defaultIfBlank(language, "Turkish");
+        language = defaultIfBlank(language, "English");
         reviewLanguage = defaultIfBlank(
                 reviewLanguage,
                 language

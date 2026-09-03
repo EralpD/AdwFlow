@@ -27,7 +27,8 @@
             <h2 id="login-title">Login to AdwFlow</h2>
             <p class="card-description">Enter your details to continue.</p>
             <p class="account-alert alert-error" role="alert" th:if="${param.error != null}">Invalid email or password. Please try again.</p>
-            <p class="account-alert alert-success" role="status" th:if="${param.registered != null}">Your account is ready. Log in to start creating.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.verified != null}">Your email is verified. You can now log in.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.passwordReset != null}">Your password has been changed. Log in with your new password.</p>
             <p class="account-alert alert-success" role="status" th:if="${param.logout != null}">You have been logged out safely.</p>
             <form class="account-form" th:action="@{/login}" method="post">
                 <div class="form-field">
@@ -37,10 +38,12 @@
                 <div class="form-field">
                     <label for="password">Password</label>
                     <input id="password" name="password" type="password" autocomplete="current-password" maxlength="64" placeholder="Enter your password" required>
+                    <a class="field-action" th:href="@{/forgot-password}">Forgot password?</a>
                 </div>
                 <button class="button button-primary account-submit" type="submit">Login <span aria-hidden="true">→</span></button>
             </form>
             <p class="account-switch">New to AdwFlow? <a th:href="@{/register}">Create an account</a></p>
+            <p class="account-switch compact-switch">Still need to verify? <a th:href="@{/verify-email}">Enter or resend your code</a></p>
             <a class="back-link" th:href="@{/}"><span aria-hidden="true">←</span> Back to home</a>
         </section>
     </main>

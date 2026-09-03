@@ -14,7 +14,7 @@ public final class CampaignTermsTool {
     public TrustedToolResult<CampaignTermsData> resolve(CampaignTermsData campaign) {
         List<String> missing = new ArrayList<>();
         if (campaign == null) {
-            return new TrustedToolResult<>(null, List.of("campaign"), List.of());
+            return new TrustedToolResult<>(null, List.of(), List.of());
         }
 
         requireText(campaign.campaignName(), "campaign.campaignName", missing);

@@ -4,9 +4,9 @@ Tarih: 27 Ağustos 2026
 
 ## 1. Kapsam ve mevcut durum
 
-Redis, e-posta doğrulama ve şifre sıfırlama otomasyonlarının geçici güvenlik deposu olarak eklendi. Kalıcı veri modeli değişmedi: `app_users`, `history`, `archive` ve Flyway'in teknik takip tablosu korunuyor. Yeni SQL tablosu veya migration yok.
+Redis, e-posta doğrulama ve şifre sıfırlama otomasyonlarının geçici güvenlik deposu olarak eklendi. Kalıcı güvenlik token tablosu eklenmedi; V4 migration'ı yalnızca doğrulama zorunluluğundan önce oluşturulan hesapların erişimini korur.
 
-Bu aşama **backend servisleri ve yerel Redis altyapısını** tamamlar. n8n webhook istemcisi, e-posta gönderimi, yeni HTTP endpoint'leri, doğrulama/şifremi unuttum ekranları ve kayıt sonrası otomatik gönderim henüz bağlı değildir. Mevcut login/register davranışı korunur; doğrulanmamış hesapların girişine yeni bir engel konulmadı. Redis, Java bağımlılıklarını yönetmez; geçici çalışma verilerini saklar.
+Backend servisleri, yerel Redis altyapısı, güvenli n8n webhook istemcisi ve hesap kurtarma ekranları bağlıdır. Yeni kayıt `/verify-email` adresine gider; doğrulanmamış normal hesaplar giriş yapamaz. n8n workflow'u bu repository tarafından oluşturulmaz ve gerçek teslim için ayrıca yapılandırılmalıdır. Redis, Java bağımlılıklarını yönetmez; geçici çalışma verilerini saklar.
 
 ## 2. Eklenen dosyalar ve sorumlulukları
 
@@ -36,7 +36,7 @@ Java yolları `src/main/java/com/example/demo/` dizinine göredir. Ayrıca `Acco
 
 | Anahtar türü | İçerik | Ömür |
 | --- | --- | --- |
-| `challenge:<rastgele-id>` | Amaç, SQL kullanıcı ID'si, `auth_version`, HMAC özeti ve yanlış deneme sayısı | Doğrulama 10 dakika; sıfırlama 15 dakika |
+| `challenge:<rastgele-id>` | Amaç, SQL kullanıcı ID'si, `auth_version`, HMAC özeti ve yanlış deneme sayısı | Doğrulama 3 dakika; sıfırlama 15 dakika |
 | `active:<HMAC>` | Kullanıcı ve amaç için son geçerli challenge ID'si | İlgili challenge ile aynı |
 | `active:<HMAC>:cooldown` | Yeniden gönderim kilidi | 60 saniye |
 | `rate:<HMAC>` | IP veya e-posta için istek sayacı | Gönderim 1 saat; doğrulama 15 dakika |
@@ -86,7 +86,7 @@ Sayaç artışı ve TTL'nin ilk kez verilmesi birlikte yapılır. İlk istekte b
 
 | Kural | Değer |
 | --- | --- |
-| E-posta kodu ömrü | 10 dakika |
+| E-posta kodu ömrü | 3 dakika |
 | Sıfırlama token'ı ömrü | 15 dakika |
 | Yeniden gönderim aralığı | 60 saniye |
 | Challenge başına yanlış deneme | 5 |
@@ -105,7 +105,7 @@ Gönderim sınırları gerçek e-posta teslimini değil **istekleri** sayar. Coo
 - `verifyEmail(challengeId, code, clientAddress)`
 - `resetPassword(challengeId, token, password, confirmation, clientAddress)`
 
-İstek metotlarının sonucu HTTP'ye dönülecek cevap değildir. `Delivery` yalnızca backend'in n8n'e iletmesi gereken bilgiyi taşır. Kayıtlı olmayan, doğrulanmış veya limitlenmiş isteklerde zarf üretilmeyebilir. Gelecekteki HTTP endpoint'i bu farklılıkları ve süre farklarını hesap varlığını açığa çıkaracak biçimde sunmamalı; genel cevap ve asenkron gönderim tasarlanmalıdır.
+İstek metotlarının sonucu HTTP'ye dönülecek cevap değildir. `Delivery` yalnızca backend'in n8n'e iletmesi gereken bilgiyi taşır ve tarayıcıya serialize edilmez. Kayıtlı olmayan, doğrulanmış veya limitlenmiş isteklerde zarf üretilmeyebilir. `/forgot-password` ve doğrulama yeniden gönderim endpoint'leri bu farklarla hesap varlığını açığa çıkarmayan genel yanıtlar verir.
 
 E-posta doğrulamada, başarılı Redis tüketiminden sonra `email_verified_at` yazılır. Role ve parolaya dokunulmaz. Şifre sıfırlamada kayıt formuyla aynı parola kuralları uygulanır: 12–64 karakter, en fazla 72 UTF-8 byte, null karakter yasağı ve eşleşen parola tekrarı. Yeni parola mevcut BCrypt encoder ile hash'lenir.
 
@@ -175,13 +175,13 @@ Son sürümde doğrulanan sonuçlar:
 
 Son ortak çalıştırmanın kaydı `target/redis-final-verification.log`, hızlı bağlantı kaydı `target/redis-connectivity.log` dosyasındadır. SQL entegrasyonu, mevcut PostgreSQL verilerine dokunmayan ayrı `adwflow-redis-pg-test` container'ında yapıldı. SQL test adresi `redis.it.jdbc-url`, driver `redis.it.jdbc-driver`, kullanıcı `redis.it.jdbc-user` ve parola `REDIS_IT_JDBC_PASSWORD` ile bu geçici veritabanına yönlendirildi. Redis test anahtarları kendi namespace'lerinden temizlendi. Test sonunda geçici PostgreSQL container'ı durdurulup `--rm` ile kaldırıldı; `adwflow-redis` çalışır durumda bırakıldı.
 
-İlk Lettuce denemeleri başarısızdı; yukarıdaki sayılar bunları değil, Jedis'e geçişten sonraki son sürümü ifade eder. Gerçek e-posta gönderimi, n8n workflow'u, tarayıcı arayüz testi ve ücretli AI çağrısı yapılmadı.
+İlk Lettuce denemeleri başarısızdı; yukarıdaki sayılar bunları değil, Jedis'e geçişten sonraki son sürümü ifade eder. n8n workflow'u ve gerçek e-posta gönderimi bu repository kapsamında yapılmadı.
 
-## 12. Sonraki n8n aşaması
+## 12. n8n teslim sınırı
 
-Planlanan bağlantı: backend isteği → Redis challenge oluşturma → kimliği doğrulanmış n8n webhook → e-posta sağlayıcısı. Doğrulama ve parola değişimi backend'de kalır; n8n'in PostgreSQL veya Redis'e doğrudan erişmesine gerek yoktur.
+Uygulanan bağlantı: backend isteği → Redis challenge oluşturma → header ile kimliği doğrulanmış n8n webhook → e-posta sağlayıcısı. Doğrulama ve parola değişimi backend'de kalır; n8n'in PostgreSQL veya Redis'e doğrudan erişmesine gerek yoktur.
 
-Sonraki aşamada webhook kimlik doğrulaması, HTTPS ve güvenilir reset URL'si, execution log redaksiyonu, CSRF korumalı HTTP formları, genel hesap-kurtarma cevapları, delivery idempotency/yeniden deneme politikası ve parola değişti bildirim e-postası eklenecek. n8n GET link önizlemeleri token tüketmemeli; parola değişimi yalnızca açık POST işlemiyle yapılmalı. Bir gönderim kuyruğu henüz yoktur; gerekirse kullanıcı planına uygun Redis tabanlı tasarlanabilir, ancak bu geçici Redis'in restart'ta veri kaybetmesiyle kuyruğun teslim garantisi ayrıca değerlendirilmelidir.
+Webhook URL'si, auth header/secret, public uygulama URL'si ve timeout'lar ortam değişkenleriyle ayarlanır. Reset linkinin GET isteği token'ı tüketmez; parola değişimi yalnızca CSRF korumalı POST ile tamamlanır. n8n workflow'unda execution log redaksiyonu, `deliveryId` idempotency kontrolü, sağlayıcı retry politikası ve e-posta şablonları ayrıca kurulmalıdır. Bir gönderim kuyruğu henüz yoktur.
 
 ## Kaynaklar
 

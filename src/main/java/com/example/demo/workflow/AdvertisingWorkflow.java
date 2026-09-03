@@ -71,7 +71,8 @@ public final class AdvertisingWorkflow {
         List<String> evidenceIds = new ArrayList<>(product.verifiedEvidenceIds());
         evidenceIds.addAll(campaign.verifiedEvidenceIds());
         TrustedGenerationContext trustedContext = new TrustedGenerationContext(
-                product.data(), campaign.data(), evidenceIds.stream().distinct().toList());
+                product.data(), campaign.data(), evidenceIds.stream().distinct().toList(),
+                command.brief());
 
         StrategyResult strategy = createStrategy(
                 command.toStrategyRequest(trustedContext),
@@ -121,7 +122,8 @@ public final class AdvertisingWorkflow {
                         trustedContext, List.of(), findingDeltas);
             }
 
-            FindingRoutingResult routing = findingRouter.route(review);
+            FindingRoutingResult routing = findingRouter.route(
+                    review, trustedContext.hasCampaignOwnerBrief());
             if (routing.route() == FindingRoute.USER_INPUT) {
                 return result(workflowId, generationId, GenerationStatus.NEEDS_USER_INPUT,
                         revisionRounds, strategy, candidates, validation, review, decision,

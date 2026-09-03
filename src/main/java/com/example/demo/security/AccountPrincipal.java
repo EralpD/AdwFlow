@@ -12,8 +12,8 @@ public final class AccountPrincipal extends User {
     private final long authVersion;
 
     public AccountPrincipal(UserAccount account) {
-        super(account.getEmail(), account.getPasswordHash(),
-                List.of(new SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
+        super(account.getEmail(), account.getPasswordHash(), account.getEmailVerifiedAt() != null,
+                true, true, true, List.of(new SimpleGrantedAuthority("ROLE_" + account.getRole().name())));
         this.userId = account.getId();
         this.displayName = account.getDisplayName();
         this.authVersion = account.getAuthVersion();

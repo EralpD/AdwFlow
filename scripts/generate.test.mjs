@@ -56,17 +56,25 @@ const state = fixture(() => pending);
 const submission = state.submit();
 assert.equal(state.get('generate-button').disabled, true);
 assert.equal(state.get('saved-work-link').hidden, true);
-assert.match(state.get('form-message').textContent, /then saving/);
+assert.match(state.get('form-message').textContent, /work is being saved/);
 await state.submit();
 assert.equal(state.calls.length, 1, 'Double submission must not generate another paid work');
 assert.equal(state.calls[0].options.headers['X-CSRF-TOKEN'], 'test-token');
 assert.equal(state.calls[0].options.credentials, 'same-origin');
+const request = JSON.parse(state.calls[0].options.body);
+assert.deepEqual(Object.keys(request).sort(), [
+    'brandName', 'brief', 'language', 'platform', 'requestedAngleCount', 'reviewLanguage'
+].sort(), 'Generation should request only the essential campaign inputs');
+assert.equal(request.campaign, undefined);
+assert.equal(request.product, undefined);
+assert.equal(request.language, 'English');
+assert.equal(request.reviewLanguage, 'English');
 finish({ ok: true, json: async () => result });
 await submission;
 assert.equal(state.calls.length, 1, 'Embedded saved visuals must not trigger separate image generation');
 assert.equal(state.get('saved-work-link').href, '/dashboard/works/42');
 assert.equal(state.get('saved-work-link').hidden, false);
-assert.match(state.get('form-message').textContent, /Saved to My Works/);
+assert.match(state.get('form-message').textContent, /My Works/);
 assert.equal(state.get('generate-button').disabled, false);
 console.log('PASS: One CSRF-protected generation request, no duplicate submit, success only after server save');
 

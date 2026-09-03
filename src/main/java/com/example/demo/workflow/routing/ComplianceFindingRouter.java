@@ -12,6 +12,10 @@ import java.util.List;
 public final class ComplianceFindingRouter {
 
     public FindingRoutingResult route(ReviewResult review) {
+        return route(review, false);
+    }
+
+    public FindingRoutingResult route(ReviewResult review, boolean campaignOwnerBriefAvailable) {
         List<ComplianceFinding> blocking = review.candidateReviews().stream()
                 .flatMap(candidate -> candidate.findings().stream())
                 .filter(finding -> finding.severity().requiresRevision())
@@ -20,7 +24,7 @@ public final class ComplianceFindingRouter {
         List<ComplianceFinding> evidenceGaps = blocking.stream()
                 .filter(finding -> finding.category() == FindingCategory.UNSUPPORTED_CLAIM)
                 .toList();
-        if (!evidenceGaps.isEmpty()) {
+        if (!evidenceGaps.isEmpty() && !campaignOwnerBriefAvailable) {
             return new FindingRoutingResult(
                     FindingRoute.USER_INPUT,
                     List.of(),

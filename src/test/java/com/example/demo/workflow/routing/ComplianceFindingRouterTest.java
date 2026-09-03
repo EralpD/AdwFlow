@@ -22,6 +22,17 @@ class ComplianceFindingRouterTest {
     }
 
     @Test
+    void routesUnsupportedClaimsToCopywriterWhenOwnerBriefIsAvailable() {
+        FindingRoutingResult result = router.route(review(new ComplianceFinding(
+                "CANDIDATE_A-F01", FindingCategory.UNSUPPORTED_CLAIM, FindingSeverity.ERROR,
+                ReviewedField.PRIMARY_TEXT, "Üç alternatif", "İddia desteklenmiyor",
+                "İddiayı brief ile uyumlu hale getirin")), true);
+
+        assertThat(result.route()).isEqualTo(FindingRoute.COPYWRITER);
+        assertThat(result.missingInputs()).isEmpty();
+    }
+
+    @Test
     void routesOverallStrategyMisalignmentToStrategist() {
         FindingRoutingResult result = router.route(review(new ComplianceFinding(
                 "CANDIDATE_A-F02", FindingCategory.BRAND_OR_STRATEGY_MISALIGNMENT,

@@ -54,4 +54,7 @@ public class UserAccount {
     public Role getRole() { return role; }
     public Instant getEmailVerifiedAt() { return emailVerifiedAt; }
     public long getAuthVersion() { return authVersion; }
+
+    /** Bootstrap accounts have no interactive mailbox verification step. */
+    void markEmailVerifiedForBootstrap() { emailVerifiedAt = Instant.now(); }
 }

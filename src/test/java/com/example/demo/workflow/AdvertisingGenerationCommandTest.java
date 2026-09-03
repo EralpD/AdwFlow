@@ -9,10 +9,10 @@ class AdvertisingGenerationCommandTest {
     @Test
     void reviewLanguageFollowsOutputLanguageByDefault() {
         AdvertisingGenerationCommand command = new AdvertisingGenerationCommand(
-                "brief", null, null, null, null, "Turkish", null, 3, null, null);
+                "brief", null, null, null, null, null, null, 3, null, null);
 
-        assertThat(command.language()).isEqualTo("Turkish");
-        assertThat(command.reviewLanguage()).isEqualTo("Turkish");
-        assertThat(command.brandVoice()).isEqualTo("Sakin, net ve motive edici");
+        assertThat(command.language()).isEqualTo("English");
+        assertThat(command.reviewLanguage()).isEqualTo("English");
+        assertThat(command.brandVoice()).isEqualTo("Calm, clear, and motivating");
     }
 }

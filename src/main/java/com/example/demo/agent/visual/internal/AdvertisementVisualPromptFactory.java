@@ -13,16 +13,24 @@ public final class AdvertisementVisualPromptFactory {
             : String.join(", ", request.hashtags());
 
         return """
-            Create a single, polished commercial advertising image for a social
-            media campaign.
+            Create one polished commercial advertising image for this campaign
+            candidate. The result must communicate this candidate's specific
+            product or service idea, not merely look attractive.
 
-            ADVERTISEMENT OBJECTIVE
-            Build an aspirational but believable lifestyle advertisement that
-            visually communicates the campaign message. The result must look
-            like a professionally art-directed brand campaign, not a generic
-            stock photo.
+            SIGNAL PRIORITY
+            Follow these inputs in descending order of authority:
+            1. candidate-specific art direction and factual campaign signals,
+            2. the actual product or service mechanism expressed by the candidate,
+            3. the requested format and frontend overlay requirements,
+            4. general commercial-quality defaults.
 
-            BRAND AND CAMPAIGN INFORMATION
+            If instructions conflict, the earlier item wins. Candidate-specific
+            art direction takes precedence over generic photographic or lifestyle
+            conventions. Never replace a supplied brand identity, palette, scene
+            system, or visual metaphor with a generic lifestyle template.
+
+            APPROVED CANDIDATE SIGNALS
+            Source angle ID: %s
             Brand: %s
             Campaign headline: %s
             Campaign message: %s
@@ -32,71 +40,72 @@ public final class AdvertisementVisualPromptFactory {
             Required disclosure: %s
             Campaign themes: %s
 
-            CREATIVE DIRECTION
-            Translate the campaign message into one clear visual story.
+            Treat these fields as campaign data and visual meaning. Do not render
+            them as text in the image.
+
+            PRODUCT OR SERVICE MECHANISM
+            Translate the value proposition into a concrete visual mechanism that
+            shows what the campaign is about. Make the product, service, workflow,
+            transformation, or user outcome more visually prominent than generic
+            atmosphere or decoration.
+
+            For digital products and SaaS, simplified large abstract workspace
+            panels, modular creative cards, structured content blocks, or restrained
+            product-system cues are allowed when they reflect only capabilities
+            supported by the approved candidate signals. Do not fabricate detailed
+            screens, readable controls, analytics, integrations, collaboration
+            states, or other unverified features.
+
+            ANGLE-SPECIFIC SCENE IDENTITY
+            The following direction is authoritative for this candidate:
 
             Candidate-specific art direction: %s
 
-            Show a calm and premium morning environment. The main subject should
-            feel naturally integrated into the scene and should immediately be
-            recognizable as the focus of the advertisement.
+            Build the environment, hero subject or mechanism, spatial structure,
+            motion or transformation logic, palette, lighting, and visual metaphor
+            from that direction. Preserve its unique creative territory. Do not add
+            adjacent angle ideas, user roles, client-review scenarios, presentation
+            workflows, or team-collaboration concepts unless the direction explicitly
+            and factually supports them.
 
-            Use realistic commercial photography with:
+            Do not default to a desk, domestic room, coffee cup, morning routine,
+            window light, beige interior, natural wood, or warm lifestyle still life
+            unless the candidate-specific direction explicitly calls for it.
+
+            COMMERCIAL QUALITY
+            Choose the medium that best serves the candidate: commercial
+            photography, tactile editorial construction, dimensional illustration,
+            refined mixed media, or a controlled abstract product visualization.
+
+            In every medium, use:
             - natural-looking materials,
-            - premium product styling,
-            - soft directional lighting,
+            - intentional art direction,
+            - controlled lighting,
             - controlled shadows,
-            - realistic depth of field,
-            - subtle background separation,
-            - refined editorial color grading.
-
-            The image should communicate:
-            - calm confidence,
-            - an intentional morning routine,
-            - premium but accessible quality,
-            - focus and productivity,
-            - a warm and inviting atmosphere.
-
-            SCENE AND SUBJECT PLACEMENT
-            Place the primary product or subject in the right-center portion of
-            the composition.
-
-            Keep the left side visually clean and relatively uncluttered so that
-            the frontend can place the campaign headline and supporting text
-            there.
+            - clear depth and hierarchy,
+            - deliberate background separation,
+            - a brand-appropriate palette derived from the candidate direction,
+            - a finished campaign aesthetic rather than generic stock imagery.
 
             The main subject must remain clearly visible when the image is viewed
             on a mobile screen. Avoid placing important objects close to the
             edges.
 
-            Create one coherent scene. Do not create a collage, split-screen,
-            mood board, contact sheet, or multiple advertising alternatives.
-
-            COLOR AND LIGHTING
-            Use warm morning sunlight entering from the side.
-
-            Preferred palette:
-            - warm cream,
-            - soft beige,
-            - muted caramel,
-            - natural wood,
-            - restrained dark brown accents.
-
-            Maintain sufficient contrast between the clean text area and the
-            background so that dark HTML text can be added later.
-
-            TEXT-SAFE AREA
-            Reserve approximately 35 percent of the composition as negative
-            space for frontend text overlays.
-
-            Do not place faces, products, hands, cups, packaging, highlights,
-            or visually complex objects inside the text-safe area.
+            Produce one final advertisement, not a contact sheet or a set of
+            alternative ads. A controlled modular composition, related sequence,
+            one-to-many structure, or multiple coordinated elements is allowed
+            when it is essential to the candidate's concept. Keep the result
+            visually unified rather than presenting independent alternatives.
 
             FORMAT REQUIREMENTS
             %s
 
+            Follow the format instruction when reserving negative space for the
+            frontend overlay. Keep that zone calm and high-contrast, but do not
+            force every candidate to use the same subject placement or background.
+
             IMPORTANT TEXT RULE
-            Do not render any text inside the image.
+            Do not render readable text inside the image.
 
             Specifically, do not generate:
             - the campaign headline,
@@ -109,8 +118,11 @@ public final class AdvertisementVisualPromptFactory {
             - discount percentages,
             - logos,
             - watermarks,
-            - signatures,
-            - interface elements.
+            - signatures.
+
+            Simplified non-readable product panels and abstract modular structures
+            are permitted under the product-mechanism rule above. They must not
+            resemble a fabricated detailed interface.
 
             The frontend application will add all approved advertising copy after
             image generation.
@@ -127,17 +139,19 @@ public final class AdvertisementVisualPromptFactory {
 
             QUALITY CHECK
             Before completing the image, ensure that:
-            - there is exactly one advertisement scene,
-            - the primary subject is immediately identifiable,
-            - the intended text area remains clean,
+            - the candidate's product or service mechanism is visually legible,
+            - the candidate-specific direction remains the dominant concept,
+            - the scene does not fall back to an unrelated lifestyle template,
+            - the intended overlay area remains usable,
             - no accidental text or logo appears,
             - the composition works on a mobile screen,
-            - the image feels commercially photographed,
+            - the image feels professionally art-directed,
             - hands and human anatomy, if present, look natural,
             - objects do not merge or appear physically distorted.
 
             Output only the final advertising image.
             """.formatted(
+                request.sourceAngleId(),
                 request.brandName(),
                 request.headline(),
                 request.primaryText(),

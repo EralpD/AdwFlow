@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="tr" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="_csrf" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <meta name="description" content="Doğrulanmış ürün ve kampanya verileriyle reklam üretin.">
-    <title>Reklam Üret — AdwFlow</title>
+    <meta name="description" content="Generate reviewed ad variations from a focused campaign brief.">
+    <title>Generate Ads — AdwFlow</title>
     <link rel="stylesheet" href="/static/css/generate.css" th:href="@{/css/generate.css}">
     <link rel="stylesheet" href="/static/css/brand-motion.css" th:href="@{/css/brand-motion.css}">
     <script src="/static/js/brand-motion.js" th:src="@{/js/brand-motion.js}" defer></script>
@@ -37,209 +37,49 @@
                     </svg>
                 </div>
 
-                <h1 id="page-title">Reklam Üret</h1>
+                <h1 id="page-title">Generate Ads</h1>
                 <p class="subtitle">
-                    Önce kampanya hedefini belirleyin, ardından doğrulanmış ürün kataloğu
-                    verilerini ekleyerek üç reklam alternatifi üretin.
+                    Enter the essentials and let AI create three distinct ad variations.
                 </p>
 
                 <form class="composer" id="generate-form" novalidate>
-                    <ol class="form-progress" aria-label="Üretim adımları">
-                        <li class="is-active" data-step-indicator="1"><span>1</span>Kampanya özeti</li>
-                        <li data-step-indicator="2"><span>2</span>Ürün kataloğu</li>
-                    </ol>
-
-                    <section class="form-step is-active" data-step="1" aria-labelledby="campaign-step-title">
+                    <section class="form-step is-active" aria-labelledby="campaign-step-title">
                         <div class="step-heading">
-                            <p class="step-eyebrow">Adım 1 / 2</p>
-                            <h2 id="campaign-step-title">Kampanyayı tanımlayın</h2>
-                            <p>Mesaj, hedef kitle ve teklif koşulları strateji ajanına aynı dilde aktarılır.</p>
+                            <h2 id="campaign-step-title">Describe your campaign</h2>
+                            <p>Only the information required for generation is requested.</p>
                         </div>
 
                         <div class="field-grid">
                             <div class="field field-wide">
-                                <label for="ad-prompt">Reklam briefi <span>*</span></label>
+                                <label for="ad-prompt">Campaign brief <span>*</span></label>
                                 <textarea id="ad-prompt" name="brief" rows="5" maxlength="30000" required
-                                    placeholder="Kampanyanın ana mesajını, hedef kitle içgörüsünü, tonu ve beklenen aksiyonu ayrıntılı biçimde yazın."
+                                    placeholder="Describe what you want to promote, your core message, target audience, and desired action."
                                     aria-describedby="word-counter keyboard-hint"></textarea>
                                 <div class="field-meta">
-                                    <span id="keyboard-hint"><kbd>Shift</kbd> + <kbd>Enter</kbd> yeni satır</span>
+                                    <span id="keyboard-hint"><kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</span>
                                     <span class="word-counter" id="word-counter" aria-live="polite">0/5000</span>
                                 </div>
                             </div>
                             <div class="field">
-                                <label for="brand-name">Marka adı <span>*</span></label>
-                                <input id="brand-name" required placeholder="Örn. HydraFlow">
+                                <label for="brand-name">Brand name <span>*</span></label>
+                                <input id="brand-name" required maxlength="120" placeholder="e.g. AdwFlow">
                             </div>
                             <div class="field">
                                 <label for="platform">Platform <span>*</span></label>
                                 <select id="platform" required><option>Instagram</option><option>LinkedIn</option><option>Facebook</option><option>TikTok</option></select>
                             </div>
-                            <div class="field">
-                                <label for="brand-voice">Marka tonu <span>*</span></label>
-                                <input id="brand-voice" required value="Sakin, net ve motive edici">
-                            </div>
-                            <div class="field">
-                                <label for="target-audience">Hedef kitle <span>*</span></label>
-                                <input id="target-audience" required placeholder="Örn. 25–40 yaş, yoğun çalışan profesyoneller">
-                            </div>
-                            <div class="field">
-                                <label for="language">İçerik dili <span>*</span></label>
-                                <select id="language" required><option value="Turkish">Türkçe</option><option value="English">İngilizce</option></select>
-                            </div>
-                            <div class="field">
-                                <label for="campaign-name">Kampanya adı <span>*</span></label>
-                                <input id="campaign-name" required placeholder="Örn. Gün Boyu Dengede">
-                            </div>
-                            <div class="field field-wide">
-                                <label for="campaign-objective">Kampanya hedefi <span>*</span></label>
-                                <input id="campaign-objective" required placeholder="Örn. Ürün keşfi ve e-ticaret dönüşümü">
-                            </div>
-                            <div class="field">
-                                <label for="campaign-start">Başlangıç tarihi <span>*</span></label>
-                                <input id="campaign-start" type="date" required>
-                            </div>
-                            <div class="field">
-                                <label for="campaign-end">Bitiş tarihi <span>*</span></label>
-                                <input id="campaign-end" type="date" required>
-                            </div>
-                            <div class="field field-wide">
-                                <label for="offer-description">Teklif açıklaması <span>*</span></label>
-                                <input id="offer-description" required placeholder="Örn. Lansmana özel %15 indirim ve ücretsiz kargo">
-                            </div>
-                            <div class="field field-compact">
-                                <label for="currency">Para birimi <span>*</span></label>
-                                <select id="currency" required><option value="TRY">TRY</option><option value="USD">USD</option><option value="EUR">EUR</option></select>
-                            </div>
-                            <div class="field">
-                                <label for="original-price">Liste fiyatı <span>*</span></label>
-                                <input id="original-price" type="number" min="0" step="0.01" required placeholder="1499">
-                            </div>
-                            <div class="field">
-                                <label for="promotional-price">Kampanya fiyatı <span>*</span></label>
-                                <input id="promotional-price" type="number" min="0" step="0.01" required placeholder="1274.15">
-                            </div>
-                            <div class="field field-compact">
-                                <label for="discount-percent">İndirim (%) <span>*</span></label>
-                                <input id="discount-percent" type="number" min="0" max="100" required placeholder="15">
-                            </div>
-                            <div class="field">
-                                <label for="shipping-regions">Ücretsiz kargo bölgeleri <span>*</span></label>
-                                <input id="shipping-regions" required placeholder="Türkiye (virgülle ayırın)">
-                            </div>
-                            <div class="field field-wide">
-                                <label for="terms-url">Kampanya koşulları URL'si <span>*</span></label>
-                                <input id="terms-url" type="url" required placeholder="https://example.com/kampanya-kosullari">
-                            </div>
                         </div>
 
                         <div class="step-actions step-actions-end">
-                            <button class="submit-button" id="continue-button" type="button">
-                                <span>Continue</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                            </button>
-                        </div>
-                    </section>
-
-                    <section class="form-step" data-step="2" aria-labelledby="product-step-title" hidden>
-                        <div class="step-heading">
-                            <p class="step-eyebrow">Adım 2 / 2</p>
-                            <h2 id="product-step-title">Ürün kataloğunu doğrulayın</h2>
-                            <p>Bu alanlar ürün kataloğu ve kanıt kayıtları tarafından doğrulanmadan agent'lara aktarılmaz.</p>
-                        </div>
-
-                        <div class="catalog-badge"><span></span>Doğrulanmış katalog kaydı</div>
-                        <div class="field-grid">
-                            <div class="field">
-                                <label for="product-id">Ürün kodu <span>*</span></label>
-                                <input id="product-id" required value="HYDRAFLOW-750-BLUE">
-                            </div>
-                            <div class="field">
-                                <label for="product-name">Ürün adı <span>*</span></label>
-                                <input id="product-name" required value="HydraFlow Smart Bottle">
-                            </div>
-                            <div class="field">
-                                <label for="capacity-ml">Kapasite (ml) <span>*</span></label>
-                                <input id="capacity-ml" type="number" min="1" required value="750">
-                            </div>
-                            <div class="field field-wide">
-                                <label for="product-features">Ürün özellikleri <span>*</span></label>
-                                <textarea id="product-features" rows="4" required>LED su içme hatırlatıcısı
-Sıcaklık göstergesi
-USB-C şarj
-Sızdırmaz kapak</textarea>
-                                <small>Her satıra bir özellik yazın.</small>
-                            </div>
-                        </div>
-
-                        <div class="claims-panel">
-                            <div class="claims-heading"><h3>Doğrulanmış iddialar</h3><p>Her iddia için değer, doğrulama durumu ve kanıt kimliği zorunludur.</p></div>
-                            <div class="claim-row">
-                                <div><strong>Soğuk tutma</strong><small>Saat</small></div>
-                                <input id="cold-value" type="number" min="1" required value="12" aria-label="Soğuk tutma süresi">
-                                <label class="verify-control"><input id="cold-verified" type="checkbox" checked> Doğrulandı</label>
-                                <input id="cold-evidence" required value="LAB-882" aria-label="Soğuk tutma kanıt kimliği">
-                            </div>
-                            <div class="claim-row">
-                                <div><strong>Sıcak tutma</strong><small>Saat</small></div>
-                                <input id="hot-value" type="number" min="1" required value="8" aria-label="Sıcak tutma süresi">
-                                <label class="verify-control"><input id="hot-verified" type="checkbox" checked> Doğrulandı</label>
-                                <input id="hot-evidence" required value="LAB-882" aria-label="Sıcak tutma kanıt kimliği">
-                            </div>
-                            <div class="claim-row">
-                                <div><strong>BPA içermez</strong><small>Boolean</small></div>
-                                <select id="bpa-value" required aria-label="BPA içermez değeri"><option value="true">Evet</option><option value="false">Hayır</option></select>
-                                <label class="verify-control"><input id="bpa-verified" type="checkbox" checked> Doğrulandı</label>
-                                <input id="bpa-evidence" required value="CERT-104" aria-label="BPA kanıt kimliği">
-                            </div>
-                        </div>
-
-                        <div class="attachments" id="attachments" aria-label="Yüklenen görseller" aria-live="polite" hidden></div>
-                        <div class="step-actions">
-                            <button class="secondary-button" id="back-button" type="button">← Kampanyaya dön</button>
-                            <div class="attachment-control">
-                            <button
-                                class="add-button"
-                                id="attachment-toggle"
-                                type="button"
-                                aria-label="Ürün görseli ekle"
-                                aria-expanded="false"
-                                aria-controls="attachment-menu"
-                            >
-                                <span class="plus-icon" aria-hidden="true">+</span>
-                            </button>
-
-                            <div class="attachment-menu" id="attachment-menu" role="menu" aria-hidden="true">
-                                <button class="upload-option" id="upload-images-button" type="button" role="menuitem">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-                                        <rect x="3" y="4" width="18" height="16" rx="3"/>
-                                        <circle cx="8.5" cy="9" r="1.5"/>
-                                        <path d="m5 17 4.5-4.5 3.2 3.2 2.1-2.1L19 17.8"/>
-                                    </svg>
-                                    Ürün görseli yükle
-                                </button>
-                            </div>
-
-                            <input
-                                class="file-input"
-                                id="image-input"
-                                name="images"
-                                type="file"
-                                accept="image/*"
-                                multiple
-                            >
-                        </div>
-
                             <button class="submit-button" id="generate-button" type="submit">
-                            <span id="generate-button-text">Generate Ad</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                                <path d="M5 12h14M13 6l6 6-6 6"/>
-                            </svg>
-                        </button>
+                                <span id="generate-button-text">Generate Ads</span>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </button>
                         </div>
                     </section>
                 </form>
 
-                <p class="privacy-note">Verileriniz yalnızca reklam üretimi ve uygunluk doğrulaması için kullanılır.</p>
+                <p class="privacy-note">Your data is used only for ad generation and compliance review.</p>
 
                 <p class="form-message" id="form-message" role="status" aria-live="polite" hidden></p>
                 <p><a class="session-actions" id="saved-work-link" hidden>Open saved work in My Works →</a></p>

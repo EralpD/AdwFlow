@@ -22,6 +22,7 @@ public class CurrentAccountAccess {
         }
         // The ID comes exclusively from the server-side login principal, never the request.
         // Recheck the database so deleted/recreated accounts cannot reuse an old session.
-        return accounts.existsByIdAndEmailAndAuthVersion(principal.getUserId(), principal.getUsername(), principal.getAuthVersion());
+        return accounts.existsByIdAndEmailAndAuthVersionAndEmailVerifiedAtIsNotNull(
+                principal.getUserId(), principal.getUsername(), principal.getAuthVersion());
     }
 }

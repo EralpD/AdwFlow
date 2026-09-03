@@ -14,7 +14,7 @@ public final class ProductCatalogTool {
         List<String> evidenceIds = new ArrayList<>();
 
         if (product == null) {
-            return new TrustedToolResult<>(null, List.of("product"), List.of());
+            return new TrustedToolResult<>(null, List.of(), List.of());
         }
 
         requireText(product.productId(), "product.productId", missing);

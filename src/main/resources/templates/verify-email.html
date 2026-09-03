@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f9ff">
+    <title>Verify email — AdwFlow</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+    <link rel="stylesheet" th:href="@{/css/account.css}">
+    <link rel="stylesheet" th:href="@{/css/brand-motion.css}">
+    <script th:src="@{/js/brand-motion.js}" defer></script>
+</head>
+<body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div class="ambient ambient-one" aria-hidden="true"></div>
+    <div class="ambient ambient-two" aria-hidden="true"></div>
+    <header th:replace="~{fragments/navigation :: header}"></header>
+    <main id="main-content" class="account-layout container">
+        <section class="account-intro" aria-labelledby="intro-title">
+            <p class="eyebrow"><span aria-hidden="true">✦</span> One quick check</p>
+            <h1 id="intro-title">Verify your<br><span>email address.</span></h1>
+            <p class="account-description">We use a short-lived code to make sure your account belongs to you. The code expires after three minutes.</p>
+        </section>
+        <section class="account-card" aria-labelledby="verify-title">
+            <span class="account-kicker">EMAIL VERIFICATION</span>
+            <h2 id="verify-title">Enter your six-digit code</h2>
+            <p class="card-description">Check your inbox and spam folder. A newly requested code replaces the previous one.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.sent != null}">We sent your verification code.</p>
+            <p class="account-alert alert-success" role="status" th:if="${param.resent != null}">If an unverified account exists for that address, a new code was requested.</p>
+            <p class="account-alert alert-error" role="alert" th:if="${param.deliveryError != null}">Your account was created, but the email could not be handed to the mail service. Configure n8n or try resending shortly.</p>
+            <p class="account-alert alert-error" role="alert" th:if="${param.unavailable != null}">Verification is temporarily unavailable. Please try again.</p>
+            <form class="account-form" th:action="@{/verify-email}" th:object="${emailVerification}" method="post">
+                <div class="account-alert alert-error" role="alert" th:if="${#fields.hasErrors('*')}">
+                    <ul><li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li></ul>
+                </div>
+                <input th:field="*{challenge}" type="hidden">
+                <div class="form-field">
+                    <label for="code">Verification code</label>
+                    <input class="verification-code" id="code" th:field="*{code}" type="text" inputmode="numeric"
+                           autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" placeholder="000000" required>
+                </div>
+                <button class="button button-primary account-submit" type="submit" th:disabled="${#strings.isEmpty(emailVerification.challenge)}">Verify email <span aria-hidden="true">→</span></button>
+            </form>
+            <div class="form-divider"><span>Need another code?</span></div>
+            <form class="account-form" th:action="@{/verify-email/resend}" th:object="${resendVerification}" method="post">
+                <div class="form-field">
+                    <label for="resend-email">Email address</label>
+                    <input id="resend-email" th:field="*{email}" type="email" autocomplete="email" maxlength="254" placeholder="you@example.com" required
+                           th:attr="aria-invalid=${#fields.hasErrors('email')}">
+                    <span class="field-error" th:errors="*{email}"></span>
+                </div>
+                <button class="button button-secondary account-submit" type="submit">Resend code</button>
+            </form>
+            <a class="back-link spaced-back-link" th:href="@{/login}"><span aria-hidden="true">←</span> Back to login</a>
+        </section>
+    </main>
+    <footer class="account-footer container">A little clarity. A lot of creative possibility.</footer>
+</body>
+</html>

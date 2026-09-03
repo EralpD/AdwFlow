@@ -9,11 +9,16 @@ import java.util.Optional;
 public interface UserAccountRepository extends JpaRepository<UserAccount, Long> {
     Optional<UserAccount> findByEmail(String email);
 
+    @Query("select u.email from UserAccount u where u.id = :id")
+    Optional<String> findEmailById(@Param("id") long id);
+
     boolean existsByEmail(String email);
 
     boolean existsByIdAndEmail(Long id, String email);
 
     boolean existsByIdAndEmailAndAuthVersion(Long id, String email, long authVersion);
+
+    boolean existsByIdAndEmailAndAuthVersionAndEmailVerifiedAtIsNotNull(Long id, String email, long authVersion);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update UserAccount u set u.emailVerifiedAt = :now where u.id = :id and u.authVersion = :version and u.emailVerifiedAt is null")

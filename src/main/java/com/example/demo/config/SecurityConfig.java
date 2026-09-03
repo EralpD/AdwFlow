@@ -58,9 +58,11 @@ public class SecurityConfig {
                 .addFilterBefore(new CurrentAccountSessionFilter(currentAccount), AuthorizationFilter.class)
                 .authorizeHttpRequests(authorize -> authorize
                         .dispatcherTypeMatchers(DispatcherType.ERROR, DispatcherType.FORWARD).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/", "/login", "/register", "/error", "/error/403",
+                        .requestMatchers(HttpMethod.GET, "/", "/login", "/register", "/verify-email",
+                                "/forgot-password", "/reset-password", "/error", "/error/403",
                                 "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/login", "/register").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/login", "/register", "/verify-email",
+                                "/verify-email/resend", "/forgot-password", "/reset-password").permitAll()
                         .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")

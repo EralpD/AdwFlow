@@ -9,7 +9,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 import java.time.Instant;
 import java.util.Optional;
 
-/** Backend integration boundary for the future n8n delivery adapter; not an HTTP API. */
+/** Backend integration boundary for account challenge issuance and consumption; not an HTTP API. */
 @Service
 public class AccountRecoveryService {
     private final UserAccountRepository accounts;
@@ -64,6 +64,12 @@ public class AccountRecoveryService {
     }
 
     public boolean resetPassword(String challengeId, String token, String password, String confirmation, String clientAddress) {
+        return resetPasswordAndGetEmail(challengeId, token, password, confirmation, clientAddress).isPresent();
+    }
+
+    /** Returns the recipient only to the trusted delivery coordinator after a successful password change. */
+    public Optional<String> resetPasswordAndGetEmail(String challengeId, String token, String password,
+            String confirmation, String clientAddress) {
         // Reuse the registration policy, including BCrypt's byte limit and confirmation rule.
         RegistrationForm input = new RegistrationForm();
         input.setDisplayName("Recovery");
@@ -71,14 +77,17 @@ public class AccountRecoveryService {
         input.setPassword(password);
         input.setConfirmPassword(confirmation);
         if (!validator.validate(input).isEmpty()) throw new IllegalArgumentException("Invalid password or password confirmation.");
-        if (!allowConfirmation(ChallengePurpose.PASSWORD_RESET, clientAddress)) return false;
+        if (!allowConfirmation(ChallengePurpose.PASSWORD_RESET, clientAddress)) return Optional.empty();
         var proof = challenges.consume(ChallengePurpose.PASSWORD_RESET, challengeId, token);
-        if (proof.isEmpty()) return false;
+        if (proof.isEmpty()) return Optional.empty();
+        String recipient = accounts.findEmailById(proof.get().userId()).orElse(null);
+        if (recipient == null) return Optional.empty();
         String hash = passwords.encode(password);
         // Consume before SQL. On SQL failure the token stays consumed; request a new email.
         // The version predicate also rejects stale credentials after Redis backup restoration.
-        return Boolean.TRUE.equals(transaction.execute(status -> accounts.resetPassword(
+        boolean changed = Boolean.TRUE.equals(transaction.execute(status -> accounts.resetPassword(
                 proof.get().userId(), proof.get().authVersion(), hash) == 1));
+        return changed ? Optional.of(recipient) : Optional.empty();
     }
 
     private boolean allowConfirmation(ChallengePurpose purpose, String address) {

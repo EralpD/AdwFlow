@@ -16,17 +16,8 @@
     const textarea = document.getElementById("ad-prompt");
     const counter = document.getElementById("word-counter");
     const form = document.getElementById("generate-form");
-    const attachmentToggle = document.getElementById("attachment-toggle");
-    const attachmentMenu = document.getElementById("attachment-menu");
-    const uploadImagesButton = document.getElementById("upload-images-button");
-    const imageInput = document.getElementById("image-input");
-    const attachments = document.getElementById("attachments");
     const generateButton = document.getElementById("generate-button");
     const generateButtonText = document.getElementById("generate-button-text");
-    const continueButton = document.getElementById("continue-button");
-    const backButton = document.getElementById("back-button");
-    const formSteps = Array.from(document.querySelectorAll(".form-step"));
-    const stepIndicators = Array.from(document.querySelectorAll("[data-step-indicator]"));
     const creativeToolbar = document.querySelector(".creative-toolbar");
     const aiStatusText = document.getElementById("ai-status-text");
     const formMessage = document.getElementById("form-message");
@@ -35,72 +26,9 @@
     const resultSummary = document.getElementById("result-summary");
     const candidateList = document.getElementById("candidate-list");
     const formatButtons = Array.from(document.querySelectorAll(".format-button"));
-    let selectedImages = [];
     let activeFormat = "portrait";
     let activeGenerationContext = null;
     const candidateViews = new Map();
-
-    const closeAttachmentMenu = () => {
-        attachmentToggle.classList.remove("is-open");
-        attachmentToggle.setAttribute("aria-expanded", "false");
-        attachmentMenu.classList.remove("is-open");
-        attachmentMenu.setAttribute("aria-hidden", "true");
-    };
-
-    const openAttachmentMenu = () => {
-        attachmentToggle.classList.add("is-open");
-        attachmentToggle.setAttribute("aria-expanded", "true");
-        attachmentMenu.classList.add("is-open");
-        attachmentMenu.setAttribute("aria-hidden", "false");
-    };
-
-    const syncImageInput = () => {
-        const transfer = new DataTransfer();
-        selectedImages.forEach(({ file }) => transfer.items.add(file));
-        imageInput.files = transfer.files;
-    };
-
-    const renderAttachments = () => {
-        attachments.replaceChildren();
-        attachments.hidden = selectedImages.length === 0;
-
-        selectedImages.forEach((image) => {
-            const chip = document.createElement("div");
-            chip.className = "attachment-chip";
-
-            const thumbnail = document.createElement("img");
-            thumbnail.className = "attachment-thumbnail";
-            thumbnail.src = image.previewUrl;
-            thumbnail.alt = "";
-
-            const name = document.createElement("span");
-            name.className = "attachment-name";
-            name.textContent = image.file.name;
-            name.title = image.file.name;
-
-            const removeButton = document.createElement("button");
-            removeButton.className = "remove-attachment";
-            removeButton.type = "button";
-            removeButton.setAttribute("aria-label", `Remove ${image.file.name}`);
-            removeButton.textContent = "×";
-            removeButton.addEventListener("click", () => {
-                URL.revokeObjectURL(image.previewUrl);
-                selectedImages = selectedImages.filter(({ id }) => id !== image.id);
-                syncImageInput();
-                renderAttachments();
-            });
-
-            chip.append(thumbnail, name, removeButton);
-            attachments.append(chip);
-        });
-    };
-
-    const clearAttachments = () => {
-        selectedImages.forEach(({ previewUrl }) => URL.revokeObjectURL(previewUrl));
-        selectedImages = [];
-        imageInput.value = "";
-        renderAttachments();
-    };
 
     const setFormMessage = (message, type = "info") => {
         formMessage.textContent = message;
@@ -111,8 +39,8 @@
     const setSubmitting = (submitting) => {
         generateButton.disabled = submitting;
         generateButton.setAttribute("aria-busy", String(submitting));
-        generateButtonText.textContent = submitting ? "Üretiliyor…" : "Generate Ad";
-        aiStatusText.textContent = submitting ? "Ajanlar çalışıyor" : "AI hazır";
+        generateButtonText.textContent = submitting ? "Generating…" : "Generate Ads";
+        aiStatusText.textContent = submitting ? "Agents are working" : "AI is ready";
     };
 
     const appendTextElement = (parent, tagName, className, text) => {
@@ -163,13 +91,13 @@
     const getBrandLabel = (result) => {
         const product = result.strategy?.briefAnalysis?.productOrOffer;
         if (typeof product !== "string" || !product.trim()) {
-            return result.trustedContext?.product?.name || "Markanız";
+            return result.trustedContext?.product?.name || "Your brand";
         }
 
         return product
             .split(/[,:;|—–]/)[0]
             .trim()
-            .slice(0, 28) || "Markanız";
+            .slice(0, 28) || "Your brand";
     };
 
     const getVisualUrl = (visual) => {
@@ -569,16 +497,16 @@
 
         if (needsInput) {
             const missing = Array.isArray(result.missingInputs) ? result.missingInputs : [];
-            resultSummary.textContent = `Üretim durduruldu. Eksik veya doğrulanmamış alanlar: ${missing.join(", ") || "bilinmiyor"}. Workflow ${result.workflowId}.`;
+            resultSummary.textContent = `Generation stopped. Missing or unverified fields: ${missing.join(", ") || "unknown"}. Workflow ${result.workflowId}.`;
         } else {
             const deltas = Array.isArray(result.revisionFindingDeltas) ? result.revisionFindingDeltas : [];
             const resolved = deltas.flatMap((delta) => delta.resolvedFindingCodes || []);
             const remaining = deltas.at(-1)?.remainingFindingCodes || [];
             resultSummary.textContent = [
-                `${candidates.length} reklam alternatifi kaydedildi.`,
-                `${result.revisionRounds ?? 0} revizyon turu.`,
-                `Çözülen finding kodları: ${resolved.join(", ") || "yok"}.`,
-                `Kalan finding kodları: ${remaining.join(", ") || "yok"}.`,
+                `${candidates.length} ad variations saved.`,
+                `${result.revisionRounds ?? 0} revision rounds.`,
+                `Resolved finding codes: ${resolved.join(", ") || "none"}.`,
+                `Remaining finding codes: ${remaining.join(", ") || "none"}.`,
                 `Workflow ${result.workflowId}.`
             ].join(" ");
         }
@@ -629,28 +557,9 @@
         textarea.style.overflowY = textarea.scrollHeight > maximumHeight ? "auto" : "hidden";
     };
 
-    const controlsInStep = (stepNumber) => Array.from(
-        document.querySelectorAll(`[data-step="${stepNumber}"] input, [data-step="${stepNumber}"] select, [data-step="${stepNumber}"] textarea`)
-    );
-
-    const showStep = (stepNumber) => {
-        formSteps.forEach((step) => {
-            const active = Number(step.dataset.step) === stepNumber;
-            step.hidden = !active;
-            step.classList.toggle("is-active", active);
-            controlsInStep(Number(step.dataset.step)).forEach((control) => {
-                control.disabled = !active;
-            });
-        });
-        stepIndicators.forEach((indicator) => {
-            indicator.classList.toggle("is-active", Number(indicator.dataset.stepIndicator) <= stepNumber);
-        });
-        setFormMessage("");
-        document.querySelector(`[data-step="${stepNumber}"] input, [data-step="${stepNumber}"] textarea`)?.focus();
-    };
-
-    const validateStep = (stepNumber) => {
-        const invalid = controlsInStep(stepNumber).find((control) => !control.checkValidity());
+    const validateForm = () => {
+        const controls = Array.from(form.querySelectorAll?.("input, select, textarea") || []);
+        const invalid = controls.find((control) => !control.checkValidity());
         if (invalid) {
             invalid.reportValidity();
             invalid.focus();
@@ -658,13 +567,6 @@
         }
         return true;
     };
-
-    continueButton.addEventListener("click", () => {
-        if (!validateStep(1)) return;
-        showStep(2);
-    });
-
-    backButton.addEventListener("click", () => showStep(1));
 
     textarea.addEventListener("input", () => {
         countAndLimitWords();
@@ -674,56 +576,6 @@
     textarea.addEventListener("keydown", (event) => {
         if (event.key === "Enter" && event.shiftKey) {
             window.requestAnimationFrame(resizeTextarea);
-        }
-    });
-
-    attachmentToggle.addEventListener("click", () => {
-        const isOpen = attachmentToggle.getAttribute("aria-expanded") === "true";
-        if (isOpen) {
-            closeAttachmentMenu();
-        } else {
-            openAttachmentMenu();
-        }
-    });
-
-    uploadImagesButton.addEventListener("click", () => {
-        closeAttachmentMenu();
-        imageInput.click();
-    });
-
-    imageInput.addEventListener("change", () => {
-        const existingFiles = new Set(
-            selectedImages.map(({ file }) => `${file.name}-${file.size}-${file.lastModified}`)
-        );
-
-        Array.from(imageInput.files)
-            .filter((file) => file.type.startsWith("image/"))
-            .forEach((file) => {
-                const fileKey = `${file.name}-${file.size}-${file.lastModified}`;
-                if (!existingFiles.has(fileKey)) {
-                    selectedImages.push({
-                        id: `${fileKey}-${selectedImages.length}`,
-                        file,
-                        previewUrl: URL.createObjectURL(file)
-                    });
-                    existingFiles.add(fileKey);
-                }
-            });
-
-        syncImageInput();
-        renderAttachments();
-    });
-
-    document.addEventListener("click", (event) => {
-        if (!event.target.closest(".attachment-control")) {
-            closeAttachmentMenu();
-        }
-    });
-
-    document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && attachmentToggle.getAttribute("aria-expanded") === "true") {
-            closeAttachmentMenu();
-            attachmentToggle.focus();
         }
     });
 
@@ -753,15 +605,12 @@
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         if (generateButton.disabled) return;
-        closeAttachmentMenu();
 
         const brief = textarea.value.trim();
 
-        if (!validateStep(2)) return;
+        if (!validateForm()) return;
 
-        const hadImages = selectedImages.length > 0;
-        setFormMessage("Metinler uygunluk kontrolünden geçiriliyor, üç görsel üretiliyor ve çalışma kaydediliyor. Bu işlem birkaç dakika sürebilir."
-            + (hadImages ? " Eklenen görseller henüz modele gönderilmez; yalnızca yapılandırılmış veriler kullanılır." : ""), "info");
+        setFormMessage("Copy is being reviewed for compliance, three visuals are being generated, and the work is being saved. This may take a few minutes.", "info");
         document.getElementById("saved-work-link").hidden = true;
 
         generationResult.hidden = true;
@@ -776,47 +625,9 @@
                     brief,
                     platform: document.getElementById("platform").value,
                     brandName: document.getElementById("brand-name").value.trim(),
-                    brandVoice: document.getElementById("brand-voice").value.trim(),
-                    knownTargetAudience: document.getElementById("target-audience").value.trim(),
-                    language: document.getElementById("language").value,
-                    reviewLanguage: document.getElementById("language").value,
-                    requestedAngleCount: 3,
-                    campaign: {
-                        campaignName: document.getElementById("campaign-name").value.trim(),
-                        objective: document.getElementById("campaign-objective").value.trim(),
-                        startsOn: document.getElementById("campaign-start").value,
-                        endsOn: document.getElementById("campaign-end").value,
-                        offerDescription: document.getElementById("offer-description").value.trim(),
-                        currency: document.getElementById("currency").value,
-                        originalPrice: Number(document.getElementById("original-price").value),
-                        promotionalPrice: Number(document.getElementById("promotional-price").value),
-                        discountPercent: Number(document.getElementById("discount-percent").value),
-                        freeShippingRegions: document.getElementById("shipping-regions").value.split(",").map((value) => value.trim()).filter(Boolean),
-                        termsUrl: document.getElementById("terms-url").value.trim()
-                    },
-                    product: {
-                        productId: document.getElementById("product-id").value.trim(),
-                        name: document.getElementById("product-name").value.trim(),
-                        capacityMl: Number(document.getElementById("capacity-ml").value),
-                        features: document.getElementById("product-features").value.split(/\r?\n/).map((value) => value.trim()).filter(Boolean),
-                        claims: {
-                            coldRetentionHours: {
-                                value: Number(document.getElementById("cold-value").value),
-                                verified: document.getElementById("cold-verified").checked,
-                                evidenceId: document.getElementById("cold-evidence").value.trim()
-                            },
-                            hotRetentionHours: {
-                                value: Number(document.getElementById("hot-value").value),
-                                verified: document.getElementById("hot-verified").checked,
-                                evidenceId: document.getElementById("hot-evidence").value.trim()
-                            },
-                            bpaFree: {
-                                value: document.getElementById("bpa-value").value === "true",
-                                verified: document.getElementById("bpa-verified").checked,
-                                evidenceId: document.getElementById("bpa-evidence").value.trim()
-                            }
-                        }
-                    }
+                    language: "English",
+                    reviewLanguage: "English",
+                    requestedAngleCount: 3
                 })
             });
 
@@ -832,11 +643,11 @@
                 savedLink.hidden = false;
             }
             const messageByStatus = {
-                PASS: "Üç reklam ve görsel My Works alanına kaydedildi.",
-                NEEDS_USER_INPUT: "Eksik veya doğrulanmamış alanları tamamlayıp yeniden deneyin.",
-                REVISION_LIMIT_REACHED: "Çalışma kaydedildi; revizyon sınırından sonra kalan finding kodlarını inceleyin."
+                PASS: "Three ads and visuals were saved to My Works.",
+                NEEDS_USER_INPUT: "Complete the missing or unverified fields and try again.",
+                REVISION_LIMIT_REACHED: "The work was saved; review the remaining finding codes after the revision limit."
             };
-            setFormMessage(messageByStatus[result.status] || "Üretim tamamlandı.",
+            setFormMessage(messageByStatus[result.status] || "Generation complete.",
                 result.status === "PASS" ? "success" : "error");
         } catch (error) {
             generationResult.hidden = true;
@@ -845,12 +656,10 @@
                 "error"
             );
         } finally {
-            clearAttachments();
             setSubmitting(false);
         }
     });
 
     countAndLimitWords();
     resizeTextarea();
-    showStep(1);
 })();

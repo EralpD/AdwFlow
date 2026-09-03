@@ -26,18 +26,25 @@
 .form-field input::placeholder { color: #65738a; font-size: .86rem; }
 .form-field input:focus { border-color: var(--blue-600); background: white; }
 .form-field input[aria-invalid="true"] { border-color: #b33c52; }
+.form-field .verification-code { text-align: center; letter-spacing: .42em; font-size: 1.35rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+.field-action { justify-self: end; color: var(--blue-800); font-size: .76rem; font-weight: 750; }
 .field-hint { color: #52627d; font-size: .74rem; line-height: 1.6; }
 .field-error { color: #973048; font-size: .78rem; line-height: 1.5; }
 .field-error:empty { display: none; }
 .account-submit { width: 100%; margin-top: 6px; justify-content: space-between; cursor: pointer; font-family: inherit; }
+.account-submit:disabled { cursor: not-allowed; opacity: .55; }
 .account-alert { padding: 14px 16px; border-radius: 12px; font-size: .82rem; line-height: 1.65; overflow-wrap: anywhere; }
 .account-alert ul { margin: 8px 0 0; padding-left: 18px; }
 .alert-error { color: #882a42; background: #fff0f3; border: 1px solid #f0cbd4; }
 .alert-success { color: #21634d; background: #edf9f3; border: 1px solid #cce8db; }
 .account-switch { margin: 24px 0 20px; text-align: center; font-size: .83rem; color: #52627d; }
+.compact-switch { margin-top: -8px; }
 .account-switch a, .back-link { color: var(--blue-800); font-weight: 750; }
 .account-switch a:hover, .back-link:hover { text-decoration: underline; }
 .back-link { display: block; text-align: center; font-size: .78rem; }
+.spaced-back-link { margin-top: 22px; }
+.form-divider { display: flex; align-items: center; gap: 12px; margin: 26px 0 20px; color: #65738a; font-size: .73rem; }
+.form-divider::before, .form-divider::after { content: ""; height: 1px; flex: 1; background: var(--border-light); }
 .account-footer { padding-bottom: 28px; text-align: center; color: #52627d; font-size: .76rem; }
 .account-single { max-width: 860px; padding-top: 72px; padding-bottom: 72px; }
 .account-single h1 { font-size: clamp(2rem, 4vw, 3.2rem); margin: 24px 0 18px; overflow-wrap: anywhere; }

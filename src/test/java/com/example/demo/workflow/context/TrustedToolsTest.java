@@ -11,6 +11,27 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TrustedToolsTest {
 
     @Test
+    void acceptsOmittedOptionalCatalogAndCampaignContext() {
+        assertThat(new ProductCatalogTool().resolve(null).complete()).isTrue();
+        assertThat(new CampaignTermsTool().resolve(null).complete()).isTrue();
+    }
+
+    @Test
+    void exposesCampaignOwnerBriefAsTheMinimalTrustedGenerationSource() {
+        TrustedGenerationContext context = new TrustedGenerationContext(
+                null, null, List.of(),
+                "AdwFlow kısa bir brieften üç reklam alternatifi üretir.");
+
+        String formatted = new TrustedContextPromptFormatter().format(context);
+
+        assertThat(formatted)
+                .contains("CAMPAIGN OWNER BRIEF")
+                .contains("approved factual source")
+                .contains("üç reklam alternatifi")
+                .doesNotContain("No verified product catalog");
+    }
+
+    @Test
     void acceptsCompleteVerifiedProductCatalogRecord() {
         ProductCatalogData product = new ProductCatalogData(
                 "HYDRAFLOW-750-BLUE", "HydraFlow Smart Bottle", 750,
